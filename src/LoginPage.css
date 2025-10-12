@@ -1,0 +1,105 @@
+/* Import a nice font from Google Fonts for a modern look */
+@import url('https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600&display=swap');
+
+/* The main page container, ensures content is centered vertically and horizontally */
+.login-page {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    min-height: 100vh;
+    background: #1a1a2e; /* A deep, dark blue background */
+    font-family: 'Poppins', sans-serif;
+    padding: 20px; /* Add some padding for smaller screens */
+}
+
+/* The login card itself */
+.login-container {
+    background-color: #16213e; /* A slightly lighter shade for the card */
+    padding: 40px 30px;
+    border-radius: 12px;
+    box-shadow: 0 10px 25px rgba(0, 0, 0, 0.3);
+    width: 100%; /* Take full width on small screens */
+    max-width: 400px; /* But don't get too wide on large screens */
+    text-align: center;
+    color: #e3f2fd;
+    border: 1px solid #0f3460;
+}
+
+.login-title {
+    margin-bottom: 10px;
+    font-size: 2rem;
+    font-weight: 600;
+    color: #ffffff;
+}
+
+.login-subtitle {
+    margin-bottom: 30px;
+    color: #a9a9a9;
+    font-size: 0.9rem;
+}
+
+.login-form {
+    display: flex;
+    flex-direction: column;
+    gap: 20px; /* Space between the input and the button */
+}
+
+/* A wrapper for the icon and the input field */
+.input-group {
+    position: relative;
+}
+
+.input-icon {
+    position: absolute;
+    left: 15px;
+    top: 50%;
+    transform: translateY(-50%);
+    color: #a9a9a9;
+}
+
+.login-input {
+    width: 45%;
+    padding: 15px 15px 15px 50px; /* Left padding to make space for the icon */
+    background-color: #0f3460;
+    border: 1px solid #1a1a2e;
+    border-radius: 8px;
+    color: #e3f2fd;
+    font-size: 1rem;
+    transition: border-color 0.3s, box-shadow 0.3s;
+}
+
+.login-input::placeholder {
+    color: #a9a9a9;
+}
+
+/* Highlight the input field when it's focused */
+.login-input:focus {
+    outline: none;
+    border-color: #e94560; /* A vibrant accent color */
+    box-shadow: 0 0 0 3px rgba(233, 69, 96, 0.2);
+}
+
+/* Style for the login button */
+.login-button {
+    padding: 15px;
+    background: #e94560; /* Vibrant accent color */
+    color: white;
+    border: none;
+    border-radius: 8px;
+    font-size: 1rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: background-color 0.3s ease, transform 0.2s ease;
+}
+
+/* Add a subtle hover effect to the button */
+.login-button:hover {
+    background-color: #d43d51; /* Darker shade on hover */
+    transform: translateY(-2px); /* Makes the button "lift" slightly */
+}
+
+.error-message {
+    color: #ff6b6b; /* A bright, clear red for error messages */
+    margin-top: 15px;
+    font-weight: 500;
+}

@@ -1,5 +1,7 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { FaLock } from 'react-icons/fa'; // Importing an icon
+import './LoginPage.css'; // Linking the CSS file
 
 function LoginPage() {
     const [password, setPassword] = useState('');
@@ -8,29 +10,38 @@ function LoginPage() {
 
     const handleLogin = (e) => {
         e.preventDefault();
-        // ⚠️ यह सिर्फ एक उदाहरण है, असली पासवर्ड को बैकएंड से चेक करवाना चाहिए
-        if (password === 'admin123') { // सिंपल पासवर्ड चेक
-            localStorage.setItem('adminToken', 'dummy_token_for_auth'); // एक टोकन सेव करें
-            navigate('/dashboard'); // डैशबोर्ड पर भेजें
+        // ⚠️ This is for demonstration only. Real auth should be on a backend.
+        if (password === 'admin123') {
+            localStorage.setItem('adminToken', 'dummy_token_for_auth');
+            navigate('/dashboard');
         } else {
-            setError('गलत पासवर्ड!');
+            setError('गलत पासवर्ड!'); // "Incorrect Password!"
         }
     };
 
     return (
-        <div style={{ padding: '50px', textAlign: 'center' }}>
-            <h1>Admin Panel Login</h1>
-            <form onSubmit={handleLogin}>
-                <input
-                    type="password"
-                    value={password}
-                    onChange={(e) => setPassword(e.target.value)}
-                    placeholder="Enter admin password"
-                    style={{ padding: '10px' }}
-                />
-                <button type="submit" style={{ padding: '10px', marginLeft: '5px' }}>Login</button>
-            </form>
-            {error && <p style={{ color: 'red' }}>{error}</p>}
+        <div className="login-page">
+            <div className="login-container">
+                <h1 className="login-title">Admin Panel</h1>
+                <p className="login-subtitle">Please enter your password to continue</p>
+                
+                <form onSubmit={handleLogin} className="login-form">
+                    <div className="input-group">
+                        <FaLock className="input-icon" />
+                        <input
+                            type="password"
+                            value={password}
+                            onChange={(e) => setPassword(e.target.value)}
+                            placeholder="Enter admin password"
+                            className="login-input"
+                            required
+                        />
+                    </div>
+                    <button type="submit" className="login-button">Login</button>
+                </form>
+                
+                {error && <p className="error-message">{error}</p>}
+            </div>
         </div>
     );
 }
