@@ -1,45 +1,59 @@
 import React, { useState, useEffect } from 'react';
-import { useNavigate } from 'react-router-dom';
-import { FiLogOut } from 'react-icons/fi'; // Logout Icon
-import './AdminDashboard.css'; // Import the new CSS file
+import './SubscriberList.css'; // इस CSS फाइल को हम नीचे बनाएंगे
 
-function AdminDashboard() {
+function SubscriberList() {
     const [subscribers, setSubscribers] = useState([]);
-    const [loading, setLoading] = useState(true); // Add loading state
-    const navigate = useNavigate();
+    const [loading, setLoading] = useState(true);
+    const [error, setError] = useState('');
 
     useEffect(() => {
-        const fetchData = async () => {
-            setLoading(true); // Start loading
+        const fetchSubscribers = async () => {
+            setLoading(true);
+            setError('');
             try {
-                // यह Vercel के Environment Variable से URL उठाएगा
-                const apiUrl = `${process.env.REACT_APP_API_URL}/api/subscribers`;
-                const response = await fetch(apiUrl);
+const token = localStorage.getItem('token'); // ✅ FIXED: Standardized to 'token'
+               if (!token) {
+                    setError('Authorization token not found.');
+                    return;
+                } 
+                const response = await fetch(`${process.env.REACT_APP_API_URL}/api/subscribers`, {
+                    headers: {
+                        'Authorization': `Bearer ${token}`
+                    }
+                });
+
+                if (!response.ok) {
+                    throw new Error('Failed to fetch data. Please check your permissions.');
+                }
+
                 const result = await response.json();
                 if (result.success) {
                     setSubscribers(result.data);
+                } else {
+                    setError(result.message || 'Could not fetch subscribers.');
                 }
             } catch (err) {
-                console.error("Failed to fetch data", err);
+                console.error("Fetch error:", err);
+                setError(err.message || 'An error occurred.');
             } finally {
-                setLoading(false); // Stop loading regardless of result
+                setLoading(false);
             }
         };
-        fetchData();
-    }, []);
 
-    const handleLogout = () => {
-        localStorage.removeItem('adminToken');
-        navigate('/login');
-    };
+        fetchSubscribers();
+    }, []);
 
     const renderContent = () => {
         if (loading) {
             return <div className="loading-message">Loading Subscribers...</div>;
         }
 
+        if (error) {
+            return <div className="error-message">Error: {error}</div>;
+        }
+
         if (subscribers.length === 0) {
-            return <div className="empty-message">No subscribers found.</div>;
+            return <div className="empty-message">No subscribers found from the landing page form.</div>;
         }
 
         return (
@@ -69,18 +83,15 @@ function AdminDashboard() {
     };
 
     return (
-        <div className="dashboard-page">
-            <header className="dashboard-header">
-                <h1 className="dashboard-title">Subscribers List</h1>
-                <button onClick={handleLogout} className="logout-button">
-                    <FiLogOut /> <span>Logout</span>
-                </button>
+        <div className="list-page">
+            <header className="list-header">
+                <h1 className="list-title">Landing Page Subscribers</h1>
             </header>
-            <main className="dashboard-content">
+            <main className="list-content">
                 {renderContent()}
             </main>
         </div>
     );
 }
 
-export default AdminDashboard;
+export default SubscriberList;
