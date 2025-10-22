@@ -1,37 +1,108 @@
-/* Dashboard.css */
+/* ----------------------------------------------------
+ * DASHBOARD STYLES (Admin Dashboard.js)
+ * ---------------------------------------------------- */
+
+.dashboard-container {
+    padding: 30px;
+    background-color: #f0f2f5; /* Light background for the overall page */
+    min-height: calc(100vh - 70px); /* Adjust based on your Layout header height */
+    font-family: Arial, sans-serif;
+}
+
+.dashboard-heading {
+    color: #1a202c;
+    font-size: 2.2em;
+    margin-bottom: 5px;
+}
+
+.dashboard-subtitle {
+    color: #6b7280;
+    font-size: 1.1em;
+    margin-bottom: 40px;
+    border-bottom: 1px solid #e5e7eb;
+    padding-bottom: 10px;
+}
+
 .dashboard-grid {
     display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
-    gap: 30px;
-    padding: 20px;
+    /* Responsive Grid: At least 280px wide, max 4 columns */
+    grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); 
+    gap: 25px;
 }
+
+/* --- Dashboard Card Styling --- */
 
 .dashboard-card {
     background: #ffffff;
     border-radius: 12px;
-    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
     padding: 30px;
     display: flex;
     flex-direction: column;
-    align-items: center;
-    text-align: center;
+    align-items: flex-start; /* Align content to the left */
     text-decoration: none;
-    color: #333;
-    transition: transform 0.2s, box-shadow 0.2s;
+    color: #1a202c;
+    border-top: 5px solid transparent; /* Placeholder for color accent */
+    transition: all 0.3s ease-in-out;
+    position: relative;
+    overflow: hidden;
 }
 
 .dashboard-card:hover {
-    transform: translateY(-5px);
-    box-shadow: 0 6px 20px rgba(0, 0, 0, 0.15);
+    transform: translateY(-8px);
+    box-shadow: 0 10px 20px rgba(0, 0, 0, 0.15);
 }
 
+/* Specific accent colors for better visual distinction */
+.dashboard-card:nth-child(1) { border-top-color: #10b981; } /* User Management */
+.dashboard-card:nth-child(2) { border-top-color: #f59e0b; } /* Admin Accounts */
+.dashboard-card:nth-child(3) { border-top-color: #3b82f6; } /* Subscribers */
+.dashboard-card:nth-child(4) { border-top-color: #ef4444; } /* Videos */
+.dashboard-card:nth-child(5) { border-top-color: #8b5cf6; } /* Chat */
+
+
 .card-icon {
-    font-size: 3rem;
-    margin-bottom: 10px;
+    font-size: 3.5em;
+    margin-bottom: 15px;
+    line-height: 1;
 }
 
 .card-title {
     margin: 0;
-    font-size: 1.25rem;
-    font-weight: 600;
+    font-size: 1.4em;
+    font-weight: 700;
+    color: #1a202c;
+}
+
+.arrow-icon {
+    position: absolute;
+    bottom: 15px;
+    right: 15px;
+    font-size: 1.5em;
+    color: #d1d5db;
+    transition: color 0.3s;
+}
+
+.dashboard-card:hover .arrow-icon {
+    color: #10b981;
+}
+
+/* --- RESPONSIVENESS --- */
+
+@media (max-width: 768px) {
+    .dashboard-container {
+        padding: 15px;
+    }
+    .dashboard-heading {
+        font-size: 1.8em;
+    }
+    .dashboard-subtitle {
+        font-size: 1em;
+        margin-bottom: 20px;
+    }
+    .dashboard-grid {
+        /* On smaller screens, allow maximum stacking */
+        grid-template-columns: 1fr;
+        gap: 15px;
+    }
 }
