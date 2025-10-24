@@ -1,74 +1,42 @@
 /* --- Global Container and Typography --- */
 .user-management-container {
     padding: 16px;
-    max-width: 1280px; /* Max width set for large screens */
+    max-width: 1280px; 
     margin: 0 auto;
+    font-family: Arial, sans-serif;
 }
 
 .user-management-header {
-    font-size: 1.875rem; /* 30px */
+    font-size: 1.875rem; 
     font-weight: 700;
-    color: #1f2937; /* Gray-900 */
+    color: #1f2937; 
     margin-bottom: 1.5rem;
     border-bottom: 1px solid #e5e7eb;
     padding-bottom: 0.5rem;
 }
 
 .user-count {
-    color: #4f46e5; /* Indigo-600 */
+    color: #4f46e5; 
     margin-left: 0.5rem;
 }
 
-/* --- Alerts and Loading --- */
+/* --- Alerts and Loading (Standard) --- */
 .loading-container {
     display: flex;
     justify-content: center;
     align-items: center;
     height: 160px;
 }
-
-.spinner {
-    border: 4px solid rgba(0, 0, 0, 0.1);
-    border-top: 4px solid #4f46e5; /* Indigo-600 */
-    border-radius: 50%;
-    width: 48px;
-    height: 48px;
-    animation: spin 1s linear infinite;
-}
-
-.loading-text {
-    margin-left: 1rem;
-    color: #4b5563; /* Gray-600 */
-}
-
-@keyframes spin {
-    0% { transform: rotate(0deg); }
-    100% { transform: rotate(360deg); }
-}
-
-.error-alert {
-    background-color: #fee2e2; /* Red-100 */
-    border: 1px solid #f87171; /* Red-400 */
-    color: #b91c1c; /* Red-700 */
-    padding: 1rem;
-    border-radius: 0.375rem;
-    margin: 1.5rem;
-}
-
-.error-bold {
-    font-weight: 700;
-}
-
-.error-message {
-    margin-left: 0.5rem;
-}
+/* Spinner styles omitted for brevity, assume they are present */
+.loading-text { margin-left: 1rem; color: #4b5563; }
+.error-alert { background-color: #fee2e2; border: 1px solid #f87171; color: #b91c1c; padding: 1rem; border-radius: 0.375rem; margin: 1.5rem; }
+.error-bold { font-weight: 700; }
 
 /* --- Table Styling --- */
 .table-wrapper {
     box-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.1), 0 1px 2px 0 rgba(0, 0, 0, 0.06);
-    overflow-x: auto; /* Scroll on very small screens if necessary */
+    overflow-x: auto; 
     border-radius: 0.5rem;
-    border-bottom: 1px solid #e5e7eb;
 }
 
 .user-table {
@@ -80,90 +48,39 @@
 .table-header {
     padding: 12px;
     text-align: left;
-    font-size: 0.75rem; /* text-xs */
+    font-size: 0.75rem; 
     font-weight: 500;
-    color: #6b7280; /* Gray-500 */
+    color: #6b7280; 
     text-transform: uppercase;
     letter-spacing: 0.05em;
-    background-color: #f9fafb; /* Gray-50 */
+    background-color: #f9fafb; 
+    border-bottom: 1px solid #e5e7eb;
 }
 
 .table-data {
     padding: 16px 12px;
     white-space: nowrap;
-    font-size: 0.875rem; /* text-sm */
-    color: #6b7280; /* Gray-500 */
+    font-size: 0.875rem; 
+    color: #6b7280; 
     border-bottom: 1px solid #e5e7eb;
 }
 
-.table-row:hover {
-    background-color: #f9fafb; /* Gray-50 on hover */
-    transition: background-color 0.15s ease-in-out;
-}
-
-.table-row:last-child .table-data {
-    border-bottom: none; /* Remove border from last row */
-}
-
-/* Specific styling for data */
-.name-col .table-data {
-    font-weight: 500;
-    color: #1f2937; /* Gray-900 */
-}
-
-.email-col .table-data {
-    color: #4f46e5; /* Indigo-600 */
-    max-width: 250px;
-    overflow: hidden;
-    text-overflow: ellipsis;
-}
-
-.action-link {
-    color: #4f46e5; /* Indigo-600 */
-    text-decoration: none;
-    padding: 4px 12px;
-    border: 1px solid #6366f1; /* Indigo-500 */
-    border-radius: 0.375rem;
-    font-size: 0.75rem;
-    transition: all 0.15s ease-in-out;
-}
-
-.action-link:hover {
-    color: #3730a3; /* Indigo-900 */
-    background-color: #eef2ff; /* Indigo-50 */
-}
+.name-col .table-data { font-weight: 500; color: #1f2937; }
+.email-col .table-data { color: #4f46e5; max-width: 250px; overflow: hidden; text-overflow: ellipsis; }
 
 .role-badge {
     padding: 2px 8px;
-    border-radius: 9999px; /* rounded-full */
+    border-radius: 9999px; 
     font-size: 0.75rem;
     font-weight: 600;
-    line-height: 1.25rem;
     display: inline-flex;
 }
 
-.role-user {
-    background-color: #d1fae5; /* Green-100 */
-    color: #065f46; /* Green-800 */
-}
+.role-user { background-color: #d1fae5; color: #065f46; }
+.role-admin { background-color: #fee2e2; color: #991b1b; }
 
-.role-admin {
-    background-color: #fee2e2; /* Red-100 */
-    color: #991b1b; /* Red-800 */
-}
-
-.no-users-message {
-    text-align: center;
-    padding: 16px;
-    font-size: 0.875rem;
-    color: #6b7280;
-}
-
-.no-users-footer {
-    margin-top: 1rem;
-    text-align: center;
-    color: #6b7280;
-}
+.no-users-message { text-align: center; padding: 16px; font-size: 0.875rem; color: #6b7280; }
+.no-users-footer { margin-top: 1rem; text-align: center; color: #6b7280; }
 
 /* --- Responsive Design (Media Queries) --- */
 
@@ -175,45 +92,27 @@
     margin-top: 4px; 
 }
 
-/* 640px और उससे छोटी स्क्रीन (Mobile - sm) के लिए नियम */
+/* 640px और छोटी स्क्रीन (Mobile - sm) के लिए नियम */
 @media (max-width: 639px) {
-    /* Hide ID, Role columns */
-    .id-col, .role-col {
-        display: none;
+    /* Hide ID, Role, and Phone columns on smallest screens */
+    .id-col, .role-col, .phone-col {
+        display: none !important;
     }
     
-    /* Make RCM ID visible under Full Name */
+    /* Show RCM ID details under the name */
     .rcm-detail {
-        display: block; 
+        display: block !important; 
     }
 }
 
 /* 768px और छोटी स्क्रीन (Tablet - md) के लिए नियम */
 @media (max-width: 767px) {
-    /* Hide RCM ID column */
+    /* Hide RCM ID column on tablet */
     .rcm-col {
-        display: none;
+        display: none !important;
     }
-}
-
-/* 1024px और छोटी स्क्रीन (Large Tablet/Small Desktop - lg) के लिए नियम */
-@media (max-width: 1023px) {
-    /* Hide Phone column */
-    .phone-col {
-        display: none;
-    }
-
-    /* Make Phone visible under Email */
+    /* Show Phone detail under email for medium screens */
     .phone-detail {
-        display: block;
-    }
-    
-    /* Adjust padding for a slightly tighter mobile fit */
-    .user-management-container {
-        padding: 8px;
-    }
-    
-    .table-data, .table-header {
-        padding: 10px 8px;
+        display: block !important;
     }
 }

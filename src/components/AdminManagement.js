@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import './AdminManagement.css'; // Futuristic CSS imported
 
 function AdminManagement() {
     const [admins, setAdmins] = useState([]);
@@ -9,7 +10,6 @@ function AdminManagement() {
         const fetchAdmins = async () => {
             setError('');
             
-            // ✅ CRITICAL FIX: Token Check before fetching
             const token = localStorage.getItem('token'); 
             if (!token) {
                 setError('Please log in to view admin data.');
@@ -19,7 +19,6 @@ function AdminManagement() {
 
             setLoading(true);
             try {
-                // Endpoint fetches ONLY role: 'ADMIN'
                 const response = await fetch(`${process.env.REACT_APP_API_URL}/api/admin/admins`, {
                     headers: { 'Authorization': `Bearer ${token}` },
                 });
@@ -42,39 +41,57 @@ function AdminManagement() {
         fetchAdmins();
     }, []);
 
-    if (loading) return <p>Loading Admin list...</p>;
-    if (error) return <p style={{ color: 'red', padding: '20px' }}>Error: {error}</p>;
+    // --- Conditional Rendering for Loading/Error ---
+    if (loading) return (
+        <div className="futuristic-container loading-state">
+            <div className="spinner-futuristic"></div>
+            <p className="loading-text-futuristic">Loading Admin list...</p>
+        </div>
+    );
+    
+    if (error) return (
+        <div className="futuristic-container">
+            <div className="error-alert-futuristic">Error: {error}</div>
+        </div>
+    );
+    // ---------------------------------------------
 
     return (
-        <div>
-            <h2>Admin Management ({admins.length} Admins)</h2>
-            <p>This table displays users who have the **'ADMIN' role** assigned in the database.</p>
-            <table border="1" style={{ width: '100%', borderCollapse: 'collapse', marginTop: '20px' }}>
-                <thead>
-                    <tr>
-                        <th>ID</th>
-                        <th>Full Name</th> 
-                        <th>Email</th>
-                        <th>RCM ID</th> 
-                        <th>Created At</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    {admins.length > 0 ? admins.map(admin => (
-                        <tr key={admin.id}>
-                            <td>{admin.id}</td>
-                            <td>{admin.fullName}</td> 
-                            <td>{admin.email}</td>
-                            <td>{admin.rcmId || 'N/A'}</td> 
-                            <td>{new Date(admin.createdAt).toLocaleDateString()}</td>
-                        </tr>
-                    )) : (
+        <div className="futuristic-container">
+            <h2 className="futuristic-header">
+                Admin Management 
+                <span className="admin-count-badge">({admins.length} Admins)</span>
+            </h2>
+            <p className="futuristic-subtext">This table displays users who have the **'ADMIN' role** assigned in the system.</p>
+            
+            <div className="table-wrapper-futuristic">
+                <table className="admin-table-futuristic">
+                    <thead>
                         <tr>
-                            <td colSpan="5" style={{ textAlign: 'center' }}>No other administrators found.</td>
+                            <th className="table-header-futuristic id-col">ID</th>
+                            <th className="table-header-futuristic name-col">Full Name</th> 
+                            <th className="table-header-futuristic email-col">Email</th>
+                            <th className="table-header-futuristic rcm-col">RCM ID</th> 
+                            <th className="table-header-futuristic created-at-col">Created At</th>
                         </tr>
-                    )}
-                </tbody>
-            </table>
+                    </thead>
+                    <tbody>
+                        {admins.length > 0 ? admins.map(admin => (
+                            <tr key={admin.id} className="table-row-futuristic">
+                                <td className="table-data-futuristic id-col">{admin.id}</td>
+                                <td className="table-data-futuristic name-col">{admin.fullName}</td> 
+                                <td className="table-data-futuristic email-col">{admin.email}</td>
+                                <td className="table-data-futuristic rcm-col">{admin.rcmId || 'N/A'}</td> 
+                                <td className="table-data-futuristic created-at-col">{new Date(admin.createdAt).toLocaleDateString()}</td>
+                            </tr>
+                        )) : (
+                            <tr>
+                                <td colSpan="5" className="no-admins-message-futuristic">No other administrators found.</td>
+                            </tr>
+                        )}
+                    </tbody>
+                </table>
+            </div>
         </div>
     );
 }
