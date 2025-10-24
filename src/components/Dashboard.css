@@ -1,108 +1,138 @@
-/* ----------------------------------------------------
- * DASHBOARD STYLES (Admin Dashboard.js)
- * ---------------------------------------------------- */
-
-.dashboard-container {
+/* ==================================== */
+/* 1. Global Futuristic Theme & Layout */
+/* ==================================== */
+.futuristic-dashboard-container {
+    font-family: 'Consolas', 'Lucida Console', monospace;
+    max-width: 1200px;
+    margin: 0 auto;
     padding: 30px;
-    background-color: #f0f2f5; /* Light background for the overall page */
-    min-height: calc(100vh - 70px); /* Adjust based on your Layout header height */
-    font-family: Arial, sans-serif;
+    background-color: #1a1a2e; /* Deep Dark Blue/Purple */
+    color: #e0f7fa; /* Light Cyan/White text */
+    min-height: 100vh;
 }
 
-.dashboard-heading {
-    color: #1a202c;
-    font-size: 2.2em;
-    margin-bottom: 5px;
+.futuristic-heading {
+    font-size: 2.8rem;
+    font-weight: 800;
+    color: #00bcd4; /* Bright Cyan Accent */
+    margin-bottom: 0.5rem;
+    letter-spacing: 2px;
 }
 
-.dashboard-subtitle {
-    color: #6b7280;
-    font-size: 1.1em;
+.futuristic-subtitle {
+    color: #a0aec0; /* Light Gray Subtext */
     margin-bottom: 40px;
-    border-bottom: 1px solid #e5e7eb;
-    padding-bottom: 10px;
+    font-size: 1.1rem;
+    border-bottom: 1px dashed rgba(0, 188, 212, 0.3);
+    padding-bottom: 15px;
 }
 
-.dashboard-grid {
+/* ==================================== */
+/* 2. Grid Layout */
+/* ==================================== */
+.dashboard-grid-futuristic {
     display: grid;
-    /* Responsive Grid: At least 280px wide, max 4 columns */
-    grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); 
-    gap: 25px;
+    /* Default: 3 columns on large screens */
+    grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+    gap: 30px;
 }
 
-/* --- Dashboard Card Styling --- */
-
-.dashboard-card {
-    background: #ffffff;
-    border-radius: 12px;
-    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
-    padding: 30px;
+/* ==================================== */
+/* 3. Futuristic Card Styling */
+/* ==================================== */
+.dashboard-card-futuristic {
     display: flex;
     flex-direction: column;
-    align-items: flex-start; /* Align content to the left */
+    align-items: center;
+    justify-content: center;
+    padding: 30px;
+    border-radius: 12px;
+    
+    /* Card Base Style */
+    background-color: #24243e; /* Darker card background */
+    border: 1px solid rgba(0, 188, 212, 0.2);
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.3);
+    
+    /* Text/Link Styles */
+    color: #e0f7fa;
     text-decoration: none;
-    color: #1a202c;
-    border-top: 5px solid transparent; /* Placeholder for color accent */
-    transition: all 0.3s ease-in-out;
-    position: relative;
-    overflow: hidden;
+    text-align: center;
+    transition: transform 0.3s ease, box-shadow 0.3s ease, background-color 0.3s ease;
 }
 
-.dashboard-card:hover {
-    transform: translateY(-8px);
-    box-shadow: 0 10px 20px rgba(0, 0, 0, 0.15);
+/* Hover Effect: Glow and Lift */
+.dashboard-card-futuristic:hover {
+    background-color: #313155; /* Slightly lighter on hover */
+    transform: translateY(-8px); /* Lift up effect */
+    border-color: #00bcd4; /* Solid Cyan border */
+    box-shadow: 0 0 30px rgba(0, 188, 212, 0.8); /* Intense Cyan Glow */
 }
 
-/* Specific accent colors for better visual distinction */
-.dashboard-card:nth-child(1) { border-top-color: #10b981; } /* User Management */
-.dashboard-card:nth-child(2) { border-top-color: #f59e0b; } /* Admin Accounts */
-.dashboard-card:nth-child(3) { border-top-color: #3b82f6; } /* Subscribers */
-.dashboard-card:nth-child(4) { border-top-color: #ef4444; } /* Videos */
-.dashboard-card:nth-child(5) { border-top-color: #8b5cf6; } /* Chat */
-
-
-.card-icon {
-    font-size: 3.5em;
+/* Icon Styling */
+.card-icon-futuristic {
+    font-size: 3rem;
     margin-bottom: 15px;
-    line-height: 1;
+    line-height: 1; /* Ensure emoji/icon is centered */
+    /* Add a subtle icon shadow/glow */
+    text-shadow: 0 0 10px rgba(0, 188, 212, 0.7);
 }
 
-.card-title {
-    margin: 0;
-    font-size: 1.4em;
-    font-weight: 700;
-    color: #1a202c;
+/* Title Styling */
+.card-title-futuristic {
+    font-size: 1.4rem;
+    font-weight: 600;
+    margin-bottom: 10px;
+    color: #81e6d9; /* Mint Green/Cyan for contrast */
+    letter-spacing: 0.5px;
 }
 
-.arrow-icon {
-    position: absolute;
-    bottom: 15px;
-    right: 15px;
-    font-size: 1.5em;
-    color: #d1d5db;
-    transition: color 0.3s;
+/* Arrow Icon */
+.arrow-icon-futuristic {
+    font-size: 1.5rem;
+    color: #00bcd4;
+    opacity: 0.7;
+    transition: opacity 0.3s ease;
 }
 
-.dashboard-card:hover .arrow-icon {
-    color: #10b981;
+/* Arrow changes visibility on hover */
+.dashboard-card-futuristic:hover .arrow-icon-futuristic {
+    opacity: 1;
+    transform: translateX(5px);
 }
 
-/* --- RESPONSIVENESS --- */
+/* ==================================== */
+/* 4. Responsive Adjustments */
+/* ==================================== */
 
-@media (max-width: 768px) {
-    .dashboard-container {
-        padding: 15px;
+/* Tablet View (max-width: 992px): Switch to 2 columns */
+@media (max-width: 992px) {
+    .dashboard-grid-futuristic {
+        grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+        gap: 25px;
     }
-    .dashboard-heading {
-        font-size: 1.8em;
+    .futuristic-heading {
+        font-size: 2.2rem;
     }
-    .dashboard-subtitle {
-        font-size: 1em;
-        margin-bottom: 20px;
+}
+
+/* Mobile View (max-width: 600px): Switch to 1 column */
+@media (max-width: 600px) {
+    .futuristic-dashboard-container {
+        padding: 20px 15px;
     }
-    .dashboard-grid {
-        /* On smaller screens, allow maximum stacking */
+    
+    .futuristic-heading {
+        font-size: 1.8rem;
+        text-align: center;
+    }
+    
+    .futuristic-subtitle {
+        font-size: 1rem;
+        text-align: center;
+    }
+
+    .dashboard-grid-futuristic {
         grid-template-columns: 1fr;
-        gap: 15px;
+        gap: 20px;
     }
 }
