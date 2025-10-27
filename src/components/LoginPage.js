@@ -10,12 +10,8 @@ const LoginPage = () => {
     const handleLogin = async (e) => {
         e.preventDefault();
         
-        // ✅ CRITICAL FIX: Use the Environment Variable for the LIVE API call
-        // This ensures the call goes to Render, not localhost:3001
-        const apiUrl = `${process.env.REACT_APP_API_URL}/api/auth/login`; 
-
         try {
-            const response = await fetch(apiUrl, { // USE FIXED URL HERE
+            const response = await fetch('http://localhost:3001/api/auth/login', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({ loginId, password }),
@@ -24,18 +20,20 @@ const LoginPage = () => {
             const data = await response.json();
 
             if (response.ok) {
-                // Store token and role
+                // ✅ CRITICAL FIX: Store token AND role
                 localStorage.setItem('token', data.token);
                 localStorage.setItem('userRole', data.user.role); 
                 
+                console.log('Login successful:', data);
+                
+                // Redirect Admin/User to the protected dashboard path
                 navigate('/dashboard'); 
             } else {
                 alert(data.message || 'Login failed. Check your ID/Email and password.');
             }
         } catch (error) {
             console.error('Login error:', error);
-            // This error now means connection failed to the LIVE Render URL
-            alert('A network error occurred. Check if the backend is running.'); 
+            alert('A network error occurred. Check if the backend is running.');
         }
     };
 
