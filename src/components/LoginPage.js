@@ -10,14 +10,12 @@ const LoginPage = () => {
     const handleLogin = async (e) => {
         e.preventDefault();
         
-        // ✅ CRITICAL FIX: Use the Environment Variable for the LIVE API call
-        // This ensures the call goes to Render, not localhost:3001
-        // NOTE: The process.env.REACT_APP_API_URL must be set to the Render URL.
+        // Use the Environment Variable for the LIVE API call
         const apiUrl = `${process.env.REACT_APP_API_URL}/api/auth/login`; 
 
         try {
-            const response = await fetch(apiUrl, { // USE FIXED URL HERE
-                method: 'POST',
+            const response = await fetch(apiUrl, { 
+                method: 'POST', // 🛑 CRITICAL FIX: Explicitly define POST method
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({ loginId, password }),
             });
@@ -35,7 +33,6 @@ const LoginPage = () => {
             }
         } catch (error) {
             console.error('Login error:', error);
-            // This error now means connection failed to the LIVE Render URL
             alert('A network error occurred. Check if the backend is running.'); 
         }
     };
