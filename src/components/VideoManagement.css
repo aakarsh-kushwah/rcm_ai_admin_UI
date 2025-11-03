@@ -351,3 +351,31 @@
         padding: 8px 3px;
     }
 }
+
+/* --- Naya Batch Import Form Styles --- */
+
+.batch-import-card {
+  background-color: #f0f8ff; /* Halka neela background */
+  border-left: 5px solid #007bff; /* Primary blue border */
+}
+
+.batch-import-card h3 {
+  color: #0056b3; /* Gehra neela text */
+}
+
+.batch-import-card p {
+  font-size: 0.9rem;
+  color: #333;
+  margin-top: -10px;
+  margin-bottom: 15px;
+}
+
+.batch-textarea {
+  width: 100%;
+  padding: 8px;
+  border: 1px solid #ccc;
+  border-radius: 4px;
+  font-family: Arial, sans-serif;
+  font-size: 0.95rem;
+  line-height: 1.5;
+}

@@ -1,4 +1,5 @@
-import React, { useState, useEffect } from 'react';
+// src/components/VideoManagement.js
+import React, { useState, useEffect, useCallback } from 'react';
 import './VideoManagement.css'; 
 
 // =======================================================
@@ -37,126 +38,121 @@ function EditModal({ video, onClose, onSave }) {
 // Main Video Management Component
 // =======================================================
 function VideoManagement() {
-    // State for link submission
-    const [title, setTitle] = useState('');
-    const [description, setDescription] = useState('');
-    const [videoUrl, setVideoUrl] = useState(''); 
+    // --- ✅ Naya State: Batch Scrape (Free) ---
+    const [urls, setUrls] = useState(''); // Text area ke liye
     const [videoType, setVideoType] = useState('leaders');
-    
-    const [submitting, setSubmitting] = useState(false); 
-    const [message, setMessage] = useState('');
-    const [messageType, setMessageType] = useState('');
+    const [isImporting, setIsImporting] = useState(false);
+    const [importMessage, setImportMessage] = useState('');
+    const [importMessageType, setImportMessageType] = useState('');
 
-    // State for video lists (remains the same)
+    // --- State for video lists ---
     const [leaderVideos, setLeaderVideos] = useState([]);
     const [productVideos, setProductVideos] = useState([]);
     const [loading, setLoading] = useState(true);
     const [isModalOpen, setIsModalOpen] = useState(false);
     const [currentVideo, setCurrentVideo] = useState(null);
+    const token = localStorage.getItem('token'); 
 
-    // Function to fetch video lists (GET Request - remains the same)
-    const fetchVideos = async () => {
+    // --- Fetch Videos (GET) ---
+    const fetchVideos = useCallback(async () => {
         setLoading(true);
-        setMessage('');
-        const token = localStorage.getItem('token'); 
-        
         if (!token) {
-            setMessage('Authentication failed: Missing token.');
-            setMessageType('error');
+            setImportMessage('Authentication failed: Missing token.');
+            setImportMessageType('error');
             setLoading(false);
             return;
         }
         
         try {
             const headers = { 'Authorization': `Bearer ${token}` };
+            const API_URL = process.env.REACT_APP_API_URL;
+            if (!API_URL) throw new Error("API URL not configured");
+
+            // Admin panel ke liye 1000 ki limit theek hai
             const [leadersRes, productsRes] = await Promise.all([
-                fetch(`${process.env.REACT_APP_API_URL}/api/videos/leaders`, { headers }),
-                fetch(`${process.env.REACT_APP_API_URL}/api/videos/products`, { headers })
+                fetch(`${API_URL}/api/videos/leaders?page=1&limit=1000`, { headers }),
+                fetch(`${API_URL}/api/videos/products?page=1&limit=1000`, { headers })
             ]);
             
             const leadersData = await leadersRes.json();
             const productsData = await productsRes.json();
+            
             if (leadersData.success) setLeaderVideos(leadersData.data || []);
             if (productsData.success) setProductVideos(productsData.data || []);
 
         } catch (error) {
-            setMessage(`Error: ${error.message || 'Failed to load existing videos.'}`);
-            setMessageType('error');
+            setImportMessage(`Error: ${error.message || 'Failed to load existing videos.'}`);
+            setImportMessageType('error');
         } finally {
             setLoading(false);
         }
-    };
+    }, [token]);
 
     useEffect(() => {
-        if (localStorage.getItem('token')) {
-            fetchVideos();
-        } else {
-            setLoading(false);
-            setMessage('Login token missing. Please re-login.');
-            setMessageType('error');
-        }
-    }, []);
+        fetchVideos();
+    }, [fetchVideos]);
 
-    // Function to handle video link submission
-    const handleLinkSubmit = async (e) => {
+    // --- ✅ Naya Function: Batch Scrape Import (Multiple URLs) ---
+    const handleBatchScrapeImport = async (e) => {
         e.preventDefault();
         
-        if (!videoUrl || !title) {
-            setMessage('Title and YouTube URL are required.');
-            setMessageType('error');
+        // Text area se URLs ko split karke array banayein
+        const urlList = urls.split('\n').filter(url => url.trim() !== ''); // Khali line hata dein
+
+        if (urlList.length === 0) {
+            setImportMessage('Please paste at least one YouTube URL.');
+            setImportMessageType('error');
             return;
         }
         
-        const token = localStorage.getItem('token'); 
         if (!token) {
-            setMessage('Authentication failed. Please log in again.');
-            setMessageType('error');
-            return; 
+           setImportMessage('Authentication failed. Please log in again.');
+           setImportMessageType('error');
+           return; 
         }
 
-        setSubmitting(true);
-        setMessage('Saving video link...');
-        setMessageType('info');
+        setIsImporting(true);
+        setImportMessage(`Importing ${urlList.length} video(s)... This may take a moment.`);
+        setImportMessageType('info');
 
         try {
-            // CRITICAL: New POST endpoint for saving link metadata (MUST MATCH BACKEND ROUTE)
-            const saveResponse = await fetch(`${process.env.REACT_APP_API_URL}/api/videos/save-link`, {
+            const API_URL = process.env.REACT_APP_API_URL;
+            const importResponse = await fetch(`${API_URL}/api/videos/batch-scrape-import`, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
                 body: JSON.stringify({
-                    title,
-                    description,
-                    videoUrl, // Send the YouTube URL
-                    videoType,
+                    urls: urlList, // URLs ka array bhejein
+                    videoType: videoType,
                 }),
             });
 
-            if (!saveResponse.ok) {
-                const errorData = await saveResponse.json();
-                throw new Error(errorData.message || 'Failed to save video link.');
+            const data = await importResponse.json();
+            if (!importResponse.ok || !data.success) {
+                throw new Error(data.message || 'Failed to import videos.');
             }
 
-            setMessage('Video link saved successfully!');
-            setMessageType('success');
-            fetchVideos();
-            setTitle(''); setDescription(''); setVideoUrl(''); // Clear inputs
+            setImportMessage(data.message); // e.g., "Imported 10 new videos. (Skipped 5 duplicates)"
+            setImportMessageType('success');
+            fetchVideos(); // List ko refresh karein
+            setUrls(''); // Text area saaf karein
         } catch (error) {
-            console.error("Link submission error:", error);
-            setMessage(`Error: ${error.message}`);
-            setMessageType('error');
+            console.error("Batch import error:", error);
+            setImportMessage(`Import Failed: ${error.message}`);
+            setImportMessageType('error');
         } finally {
-            setSubmitting(false);
+            setIsImporting(false);
         }
     };
 
-    // Function to handle video deletion (token fix applied)
-    const handleDelete = async (videoId, type) => {
-        if (!window.confirm("Are you sure you want to delete this video?")) return;
-        const token = localStorage.getItem('token'); 
-        if (!token) { alert("Missing token."); return; }
 
+    // --- Delete Video (DELETE) ---
+    const handleDelete = async (videoId, type) => {
+        // ... (Yeh function same rahega)
+        if (!window.confirm("Are you sure?")) return;
+        if (!token) { alert("Missing token."); return; }
         try {
-            await fetch(`${process.env.REACT_APP_API_URL}/api/videos/${type}/${videoId}`, {
+            const API_URL = process.env.REACT_APP_API_URL;
+            await fetch(`${API_URL}/api/videos/${type}/${videoId}`, {
                 method: 'DELETE',
                 headers: { 'Authorization': `Bearer ${token}` }
             });
@@ -166,13 +162,13 @@ function VideoManagement() {
         }
     };
 
-    // Function to handle video update (token fix applied)
+    // --- Update Video (PUT) ---
     const handleUpdate = async (videoId, type, data) => {
-        const token = localStorage.getItem('token'); 
+        // ... (Yeh function same rahega)
         if (!token) { alert("Missing token."); return; }
-
         try {
-            await fetch(`${process.env.REACT_APP_API_URL}/api/videos/${type}/${videoId}`, {
+            const API_URL = process.env.REACT_APP_API_URL;
+            await fetch(`${API_URL}/api/videos/${type}/${videoId}`, {
                 method: 'PUT',
                 headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
                 body: JSON.stringify(data),
@@ -184,32 +180,35 @@ function VideoManagement() {
         }
     };
     
-    // Helper function to get YouTube Embed URL (used for 'View' button)
+    // ... (getEmbedUrl function same rahega)
     const getEmbedUrl = (url, publicId) => {
-        // publicId holds the clean 11-character YouTube ID
         if (publicId && publicId.length === 11) {
             return `https://www.youtube.com/embed/${publicId}?autoplay=0`;
         }
-        // Fallback for non-YouTube links
         return url; 
     };
 
 
     return (
         <div className="video-management-page">
-            <h2>Video Management (YouTube Links)</h2>
+            <h2>Video Management</h2>
 
-            {/* Video Link Submission Card */}
-            <div className="management-card">
-                <h3>Submit New Video Link</h3>
-                <form className="upload-form" onSubmit={handleLinkSubmit}>
+            {/* --- ✅ Naya Form: Batch Import (Free) --- */}
+            <div className="management-card batch-import-card">
+                <h3>🚀 Batch Import Video URLs (100% Free)</h3>
+                <p>Ek ya ek se zyada YouTube URLs paste karein (har URL nayi line par). Title apne aap aa jayega.</p>
+                
+                <form className="upload-form" onSubmit={handleBatchScrapeImport}>
                     <div className="form-group">
-                        <label>Video Title *</label>
-                        <input type="text" value={title} onChange={(e) => setTitle(e.target.value)} required />
-                    </div>
-                    <div className="form-group">
-                        <label>Description</label>
-                        <textarea value={description} onChange={(e) => setDescription(e.target.value)} rows="3"></textarea>
+                        <label>YouTube Video URLs (One per line) *</label>
+                        <textarea 
+                            rows="7"
+                            value={urls}
+                            onChange={(e) => setUrls(e.target.value)}
+                            placeholder="httpsNext' paste your list of YouTube URLs here..."
+                            required
+                            className="batch-textarea"
+                        />
                     </div>
                     <div className="form-group">
                         <label>Video Type *</label>
@@ -218,20 +217,17 @@ function VideoManagement() {
                             <option value="products">Product's Video</option>
                         </select>
                     </div>
-                    {/* CRITICAL CHANGE: File input removed, replaced with URL input */}
-                    <div className="form-group"> 
-                        <label>YouTube Video URL *</label>
-                        <input type="url" value={videoUrl} onChange={(e) => setVideoUrl(e.target.value)} placeholder="e.g., https://www.youtube.com/watch?v=..." required />
-                    </div>
                     
-                    <button type="submit" disabled={submitting} className="upload-btn">
-                        {submitting ? 'Saving Link...' : 'Save Video Link'}
+                    <button type="submit" disabled={isImporting} className="upload-btn">
+                        {isImporting ? 'Importing Videos...' : 'Import Videos'}
                     </button>
-                    {message && <p className={`status-message ${messageType}`}>{message}</p>}
+                    {importMessage && <p className={`status-message ${importMessageType}`}>{importMessage}</p>}
                 </form>
             </div>
 
-            {/* Video Management Cards (display logic remains the same) */}
+            {/* --- (Single Video Form hata diya gaya hai) --- */}
+
+            {/* --- Video Lists --- */}
             <div className="video-lists-container">
                 {/* Leaders Videos */}
                 <div className="management-card">
