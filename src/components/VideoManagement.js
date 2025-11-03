@@ -1,6 +1,7 @@
 // src/components/VideoManagement.js
 import React, { useState, useEffect, useCallback } from 'react';
 import './VideoManagement.css'; 
+import { useAuth } from '../context/AuthContext'; // ✅ AuthContext ka istemal
 
 // =======================================================
 // EditModal Component (Helper - unchanged)
@@ -38,7 +39,7 @@ function EditModal({ video, onClose, onSave }) {
 // Main Video Management Component
 // =======================================================
 function VideoManagement() {
-    // --- ✅ Naya State: Batch Scrape (Free) ---
+    // --- Naya State: Batch Scrape (Free) ---
     const [urls, setUrls] = useState(''); // Text area ke liye
     const [videoType, setVideoType] = useState('leaders');
     const [isImporting, setIsImporting] = useState(false);
@@ -51,7 +52,9 @@ function VideoManagement() {
     const [loading, setLoading] = useState(true);
     const [isModalOpen, setIsModalOpen] = useState(false);
     const [currentVideo, setCurrentVideo] = useState(null);
-    const token = localStorage.getItem('token'); 
+    
+    // ✅ AuthContext se Token aur API_URL lein
+    const { token, API_URL } = useAuth(); 
 
     // --- Fetch Videos (GET) ---
     const fetchVideos = useCallback(async () => {
@@ -65,10 +68,10 @@ function VideoManagement() {
         
         try {
             const headers = { 'Authorization': `Bearer ${token}` };
-            const API_URL = process.env.REACT_APP_API_URL;
             if (!API_URL) throw new Error("API URL not configured");
 
             // Admin panel ke liye 1000 ki limit theek hai
+            // (Hum yahan pagination ka istemal nahi kar rahe hain)
             const [leadersRes, productsRes] = await Promise.all([
                 fetch(`${API_URL}/api/videos/leaders?page=1&limit=1000`, { headers }),
                 fetch(`${API_URL}/api/videos/products?page=1&limit=1000`, { headers })
@@ -86,13 +89,13 @@ function VideoManagement() {
         } finally {
             setLoading(false);
         }
-    }, [token]);
+    }, [token, API_URL]);
 
     useEffect(() => {
         fetchVideos();
     }, [fetchVideos]);
 
-    // --- ✅ Naya Function: Batch Scrape Import (Multiple URLs) ---
+    // --- Naya Function: Batch Scrape Import (Multiple URLs) ---
     const handleBatchScrapeImport = async (e) => {
         e.preventDefault();
         
@@ -116,7 +119,6 @@ function VideoManagement() {
         setImportMessageType('info');
 
         try {
-            const API_URL = process.env.REACT_APP_API_URL;
             const importResponse = await fetch(`${API_URL}/api/videos/batch-scrape-import`, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
@@ -147,11 +149,9 @@ function VideoManagement() {
 
     // --- Delete Video (DELETE) ---
     const handleDelete = async (videoId, type) => {
-        // ... (Yeh function same rahega)
         if (!window.confirm("Are you sure?")) return;
         if (!token) { alert("Missing token."); return; }
         try {
-            const API_URL = process.env.REACT_APP_API_URL;
             await fetch(`${API_URL}/api/videos/${type}/${videoId}`, {
                 method: 'DELETE',
                 headers: { 'Authorization': `Bearer ${token}` }
@@ -164,10 +164,8 @@ function VideoManagement() {
 
     // --- Update Video (PUT) ---
     const handleUpdate = async (videoId, type, data) => {
-        // ... (Yeh function same rahega)
         if (!token) { alert("Missing token."); return; }
         try {
-            const API_URL = process.env.REACT_APP_API_URL;
             await fetch(`${API_URL}/api/videos/${type}/${videoId}`, {
                 method: 'PUT',
                 headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
@@ -180,7 +178,7 @@ function VideoManagement() {
         }
     };
     
-    // ... (getEmbedUrl function same rahega)
+    // --- Helper function ---
     const getEmbedUrl = (url, publicId) => {
         if (publicId && publicId.length === 11) {
             return `https://www.youtube.com/embed/${publicId}?autoplay=0`;
@@ -193,7 +191,7 @@ function VideoManagement() {
         <div className="video-management-page">
             <h2>Video Management</h2>
 
-            {/* --- ✅ Naya Form: Batch Import (Free) --- */}
+            {/* --- Naya Form: Batch Import (Free) --- */}
             <div className="management-card batch-import-card">
                 <h3>🚀 Batch Import Video URLs (100% Free)</h3>
                 <p>Ek ya ek se zyada YouTube URLs paste karein (har URL nayi line par). Title apne aap aa jayega.</p>
@@ -205,7 +203,9 @@ function VideoManagement() {
                             rows="7"
                             value={urls}
                             onChange={(e) => setUrls(e.target.value)}
-                            placeholder="httpsNext' paste your list of YouTube URLs here..."
+                            placeholder="https://www.youtube.com/watch?v=...
+https://www.youtube.com/watch?v=...
+https://youtu.be/..."
                             required
                             className="batch-textarea"
                         />
@@ -224,8 +224,6 @@ function VideoManagement() {
                     {importMessage && <p className={`status-message ${importMessageType}`}>{importMessage}</p>}
                 </form>
             </div>
-
-            {/* --- (Single Video Form hata diya gaya hai) --- */}
 
             {/* --- Video Lists --- */}
             <div className="video-lists-container">
