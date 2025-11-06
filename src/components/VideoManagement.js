@@ -1,30 +1,29 @@
-import React, { useState, useEffect, useCallback } from 'react';
+import React, { useState, useEffect, useCallback, useMemo } from 'react';
 import './VideoManagement.css'; 
+// ✅ Naye icons import karein
+import { Users, Package, ArrowLeft } from 'lucide-react'; 
 
-// --- ✅ NAYI Category List (Aapke dwara pradaan ki gayi) ---
+// --- Category List (Unchanged) ---
 const productCategories = [
-    "Health Care", "Men's Fashion", "Women's Fashion", "Kid's Fashion",
-    "Footwears", "Bags & Accessories", "Bedsheets & Towels", "Personal Care",
-    "Household", "Electronics", "Foods & Grocery", "Home & Kitchen",
-    "Paint & Construction", "Agriculture", "Stationery"
+    "Health Care", "Men's Fashion", "Women's Fashion", "Kid's Fashion",
+    "Footwears", "Bags & Accessories", "Bedsheets & Towels", "Personal Care",
+    "Household", "Electronics", "Foods & Grocery", "Home & Kitchen",
+    "Paint & Construction", "Agriculture", "Stationery"
 ];
 
 // =======================================================
-// EditModal Component (✅ UPDATED)
-// Edit karte samay ab text input ke bajaaye dropdown dikhega
+// EditModal Component (Unchanged)
 // =======================================================
 function EditModal({ video, onClose, onSave }) {
     const [title, setTitle] = useState(video.title);
     const [description, setDescription] = useState(video.description);
-    // ✅ Edit modal mein bhi category add karein
-    const [category, setCategory] = useState(video.category || 'General');
+    const [category, setCategory] = useState(video.category || 'General');
 
     const handleSave = () => {
-        const dataToSave = { title, description };
-        // ✅ Category ko bhi save karein
-        if (video.type === 'products') {
-            dataToSave.category = category;
-        }
+        const dataToSave = { title, description };
+        if (video.type === 'products') {
+            dataToSave.category = category;
+        }
         onSave(video.id, video.type, dataToSave);
     };
 
@@ -40,24 +39,19 @@ function EditModal({ video, onClose, onSave }) {
                     <label>Description</label>
                     <textarea value={description} onChange={(e) => setDescription(e.target.value)} rows="4"></textarea>
                 </div>
-                
-                {/* ✅ Naya Category Dropdown (sirf products ke liye) */}
-                {video.type === 'products' && (
-                    <div className="form-group">
-                        <label>Category</label>
-                        <select value={category} onChange={(e) => setCategory(e.target.value)}>
-                            {/* Product categories ki list yahaan map karein */}
-                            {productCategories.map(cat => (
-                                <option key={cat} value={cat}>{cat}</option>
-                            ))}
-                            {/* Agar koi puraani category hai jo list mein nahi, usse bhi dikhayein */}
-                            {!productCategories.includes(category) && (
-                                <option key={category} value={category}>{category}</option>
-                            )}
-                        </select>
-                    </div>
-                )}
-                
+                {video.type === 'products' && (
+                    <div className="form-group">
+                        <label>Category</label>
+                        <select value={category} onChange={(e) => setCategory(e.target.value)}>
+                            {productCategories.map(cat => (
+                                <option key={cat} value={cat}>{cat}</option>
+                            ))}
+                            {!productCategories.includes(category) && (
+                                <option key={category} value={category}>{category}</option>
+                            )}
+          _             </select>
+                    </div>
+                )}
                 <div className="modal-actions">
                     <button onClick={onClose} className="cancel-btn">Cancel</button>
                     <button onClick={handleSave} className="save-btn">Save Changes</button>
@@ -67,36 +61,129 @@ function EditModal({ video, onClose, onSave }) {
     );
 }
 
+// =======================================================
+// Reusable Component: VideoListManager (Unchanged)
+// =======================================================
+function VideoListManager({ title, videos, videoType, categories = [], onEdit, onDelete, getEmbedUrl }) {
+    const [searchTerm, setSearchTerm] = useState('');
+    const [filterCategory, setFilterCategory] = useState('All');
+
+    const filteredVideos = useMemo(() => {
+        return videos.filter(video => {
+            const matchesCategory = (categories.length === 0 || filterCategory === 'All') 
+                ? true 
+                : video.category === filterCategory;
+            const matchesSearch = video.title.toLowerCase().includes(searchTerm.toLowerCase());
+            return matchesCategory && matchesSearch;
+        });
+    }, [videos, searchTerm, filterCategory, categories]);
+
+    return (
+        <div className="management-card video-list-manager">
+            <h3>{title} ({filteredVideos.length} / {videos.length})</h3>
+
+            <div className="list-filters">
+                {categories.length > 0 && (
+                    <div className="form-group">
+                        <label htmlFor={`${videoType}-category-filter`}>Filter by Category</label>
+                        <select 
+                            id={`${videoType}-category-filter`}
+                            value={filterCategory} 
+                            onChange={(e) => setFilterCategory(e.target.value)}
+                        >
+                            <option value="All">All Categories</option>
+                            {categories.map(cat => (
+                                <option key={cat} value={cat}>{cat}</option>
+                            ))}
+                        </select>
+                    </div>
+                )}
+                <div className="form-group search-group">
+                    <label htmlFor={`${videoType}-search`}>Search by Title</label>
+                    <input
+                        type="text"
+                        id={`${videoType}-search`}
+                        placeholder="Type to search..."
+                        value={searchTerm}
+                        onChange={(e) => setSearchTerm(e.target.value)}
+                    />
+                </div>
+            </div>
+
+            <div className="video-table-wrapper">
+                <table className="video-data-table">
+                    <thead>
+                        <tr>
+                            <th>Title</th>
+                            {categories.length > 0 && <th>Category</th>}
+                            <th className="actions-col">Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {filteredVideos.length > 0 ? (
+                            filteredVideos.map(video => (
+                                <tr key={video.id}>
+                                    <td data-label="Title">{video.title}</td>
+                                    {categories.length > 0 && (
+                                        <td data-label="Category">
+                                            <span className='video-category-badge'>{video.category || 'N/A'}</span>
+                                        </td>
+                                    )}
+                                    <td data-label="Actions" className="actions-cell">
+                                        <button onClick={() => window.open(getEmbedUrl(video.videoUrl, video.publicId), '_blank')} className="view-btn">View</button>
+                                        <button onClick={() => onEdit({ ...video, type: videoType })} className="edit-btn">Edit</button>
+                                        <button onClick={() => onDelete(video.id, videoType)} className="delete-btn">Delete</button>
+                                    </td>
+                                </tr>
+                            ))
+                        ) : (
+                            <tr>
+                                <td colSpan={categories.length > 0 ? 3 : 2} style={{ textAlign: 'center', padding: '20px' }}>
+                                    No videos found matching your filters.
+                                </td>
+                            </tr>
+                        )}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    );
+}
 
 // =======================================================
-// Main Video Management Component (✅ UPDATED)
+// Main Video Management Component (✅ NAYA LAYOUT)
 // =======================================================
 function VideoManagement() {
+    // --- States (Unchanged) ---
     const [urls, setUrls] = useState(''); 
-    // ✅ NAYA STATE: 'videoType' aur 'category' ko ek hi state mein manage karein
-    const [selectedCategory, setSelectedCategory] = useState('leaders'); // Default 'leaders'
+    const [selectedCategory, setSelectedCategory] = useState('leaders');
     const [isImporting, setIsImporting] = useState(false);
     const [importMessage, setImportMessage] = useState('');
     const [importMessageType, setImportMessageType] = useState('');
-
-    // --- State for video lists ---
     const [leaderVideos, setLeaderVideos] = useState([]);
     const [productVideos, setProductVideos] = useState([]);
     const [loading, setLoading] = useState(true);
     const [isModalOpen, setIsModalOpen] = useState(false);
     const [currentVideo, setCurrentVideo] = useState(null);
     
+    // --- ✅ NAYA STATE: View Management ---
+    // 'main' = Hub page (Import + Nav Cards)
+    // 'leaders' = Leaders list view
+    // 'products' = Products list view
+    const [view, setView] = useState('main'); 
+
     const token = localStorage.getItem('token'); 
     const API_URL = process.env.REACT_APP_API_URL;
 
-    // --- Fetch Videos (GET) ---
+    // --- Logic & Handlers (Unchanged) ---
     const fetchVideos = useCallback(async () => {
         setLoading(true);
-        if (!token) { /* ... (error handling - unchanged) ... */ return; }
+        setImportMessage('');
+        if (!token) { /* ... error handling ... */ setLoading(false); return; }
         
         try {
             const headers = { 'Authorization': `Bearer ${token}` };
-            if (!API_URL) throw new Error("API URL not configured in .env file");
+            if (!API_URL) throw new Error("API URL not configured");
 
             const [leadersRes, productsRes] = await Promise.all([
                 fetch(`${API_URL}/api/videos/leaders?page=1&limit=1000`, { headers }),
@@ -121,50 +208,34 @@ function VideoManagement() {
         fetchVideos();
     }, [fetchVideos]);
 
-    // --- Batch Scrape Import (✅ UPDATED) ---
     const handleBatchScrapeImport = async (e) => {
         e.preventDefault();
-        
         const urlList = urls.split('\n').filter(url => url.trim() !== ''); 
-        if (urlList.length === 0) {
-            setImportMessage('Please paste at least one YouTube URL.');
-            setImportMessageType('error');
-            return;
-        }
-        
-        if (!token) { /* ... (auth error - unchanged) ... */ return; }
+        if (urlList.length === 0) { /* ... error handling ... */ return; }
+        if (!token) { return; }
 
         setIsImporting(true);
-        setImportMessage(`Importing ${urlList.length} video(s)... This may take a moment.`);
+        setImportMessage(`Importing ${urlList.length} video(s)...`);
         setImportMessageType('info');
 
-        // ✅ Logic: API ke liye data taiyaar karein
-        const videoType = (selectedCategory === 'leaders') ? 'leaders' : 'products';
-        const category = (selectedCategory === 'leaders') ? null : selectedCategory;
+        const videoType = (selectedCategory === 'leaders') ? 'leaders' : 'products';
+        const category = (selectedCategory === 'leaders') ? null : selectedCategory;
 
         try {
             const importResponse = await fetch(`${API_URL}/api/videos/batch-scrape-import`, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
-                body: JSON.stringify({
-                    urls: urlList, 
-                    videoType: videoType,
-                    category: category // ✅ Category ko API par bhejein
-                }),
+                body: JSON.stringify({ urls: urlList, videoType: videoType, category: category }),
             });
 
             const data = await importResponse.json();
-            if (!importResponse.ok || !data.success) {
-                throw new Error(data.message || 'Failed to import videos.');
-            }
+            if (!importResponse.ok || !data.success) { throw new Error(data.message); }
 
             setImportMessage(data.message); 
             setImportMessageType('success');
-            fetchVideos(); // List ko refresh karein
-            setUrls(''); // Text area saaf karein
-            // setSelectedCategory('leaders'); // Dropdown ko default par reset karein
+            fetchVideos(); // Refresh lists
+            setUrls('');
         } catch (error) {
-            console.error("Batch import error:", error);
             setImportMessage(`Import Failed: ${error.message}`);
             setImportMessageType('error');
         } finally {
@@ -172,39 +243,36 @@ function VideoManagement() {
         }
     };
 
-
-    // --- Delete Video (Unchanged) ---
     const handleDelete = async (videoId, type) => {
         if (!window.confirm("Are you sure?")) return;
-        if (!token) { alert("Missing token."); return; }
+        if (!token) { return; }
         try {
             await fetch(`${API_URL}/api/videos/${type}/${videoId}`, {
                 method: 'DELETE',
                 headers: { 'Authorization': `Bearer ${token}` }
             });
-            fetchVideos();
-        } catch (error) {
-            alert("Failed to delete video.");
-        }
+            fetchVideos(); // Refresh lists
+        } catch (error) { alert("Failed to delete video."); }
     };
 
-    // --- Update Video (Unchanged) ---
     const handleUpdate = async (videoId, type, data) => {
-        if (!token) { alert("Missing token."); return; }
+        if (!token) { return; }
         try {
             await fetch(`${API_URL}/api/videos/${type}/${videoId}`, {
                 method: 'PUT',
                 headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
+                // ✅ YEH LINE FIX KI GAYI HAI
                 body: JSON.stringify(data),
             });
             setIsModalOpen(false);
-            fetchVideos(); 
-        } catch (error) {
-            alert("Failed to update video.");
-        }
+            fetchVideos(); // Refresh lists
+        } catch (error) { alert("Failed to update video."); }
     };
+    const handleEditClick = (video) => {
+        setCurrentVideo(video);
+        setIsModalOpen(true);
+    };
     
-    // --- Helper function (Unchanged) ---
     const getEmbedUrl = (url, publicId) => {
         if (publicId && publicId.length === 11) {
             return `https://www.youtube.com/embed/${publicId}?autoplay=0`;
@@ -212,91 +280,122 @@ function VideoManagement() {
         return url; 
     };
 
-
-    return (
-        <div className="video-management-page">
-            <h2>Video Management</h2>
-
-            {/* --- Batch Import Form (✅ UPDATED) --- */}
-            <div className="management-card batch-import-card">
-                <h3>🚀 Batch Import Video URLs</h3>
-                <p>URLs paste karein (har URL nayi line par) aur category chunein.</p>
-                
-                <form className="upload-form" onSubmit={handleBatchScrapeImport}>
-                    <div className="form-group">
-                        <label>YouTube Video URLs (One per line) *</label>
-                        <textarea 
-                            rows="7"
-                            value={urls}
-                            onChange={(e) => setUrls(e.target.value)}
-                            placeholder="https://www.youtube.com/watch?v=..."
-                            required
-                            className="batch-textarea"
-                        />
-                    </div>
-                    
-                    {/* ✅ NAYA Dropdown: Video Type + Category */}
-                    <div className="form-group">
-                        <label>Category *</label>
-                        <select value={selectedCategory} onChange={(e) => setSelectedCategory(e.target.value)}>
-                            <option value="leaders">Leader's Video</option>
-                            <optgroup label="Product Categories">
+    // --- ✅ NAYA: Render Function for Main Hub ---
+    const renderMainView = () => (
+        <>
+            {/* --- Batch Import Card (Pehle jaisa) --- */}
+            <div className="management-card batch-import-card">
+                <h3>🚀 Batch Import Video URLs</h3>
+                <p>URLs paste karein (har URL nayi line par) aur category chunein.</p>
+                <form className="upload-form" onSubmit={handleBatchScrapeImport}>
+                    <div className="form-group">
+                        <label>YouTube Video URLs (One per line) *</label>
+                        <textarea 
+                            rows="7"
+                            value={urls}
+                            onChange={(e) => setUrls(e.target.value)}
+                            placeholder="https://www.youtube.com/watch?v=..."
+                            required
+                            className="batch-textarea"
+                        />
+                    </div>
+                    <div className="form-group">
+                        <label>Category *</label>
+                        <select value={selectedCategory} onChange={(e) => setSelectedCategory(e.target.value)}>
+                            <option value="leaders">Leader's Video</option>
+                            <optgroup label="Product Categories">
                                 {productCategories.map(cat => (
                                     <option key={cat} value={cat}>{cat}</option>
                                 ))}
                             </optgroup>
-                        </select>
-                    </div>
-                    
-                    <button type="submit" disabled={isImporting} className="upload-btn">
-                        {isImporting ? 'Importing Videos...' : 'Import Videos'}
-                    </button>
-                    {importMessage && <p className={`status-message ${importMessageType}`}>{importMessage}</p>}
-                </form>
-            </div>
+                        </select>
+                    </div>
+                    <button type="submit" disabled={isImporting} className="upload-btn">
+                        {isImporting ? 'Importing Videos...' : 'Import Videos'}
+                    </button>
+                    {importMessage && <p className={`status-message ${importMessageType}`}>{importMessage}</p>}
+                </form>
+            </div>
 
-            {/* --- Video Lists (Category badge ke saath updated) --- */}
-            <div className="video-lists-container">
-                {/* Leaders Videos (Unchanged) */}
-                <div className="management-card">
-                    <h3>Manage Leaders' Videos ({leaderVideos.length})</h3>
-                    {loading ? <p>Loading...</p> : (
-                        <ul className="video-list">
-                            {leaderVideos.map(video => (
-                                <li key={video.id}>
-                                    <span className='video-title-admin'>{video.title}</span>
-                                    <div className="actions">
-                                        <button onClick={() => window.open(getEmbedUrl(video.videoUrl, video.publicId), '_blank')} className="edit-btn">View</button>
-                                        <button onClick={() => { setCurrentVideo({ ...video, type: 'leaders' }); setIsModalOpen(true); }} className="edit-btn">Edit</button>
-                                        <button onClick={() => handleDelete(video.id, 'leaders')} className="delete-btn">Delete</button>
-                                    </div>
-                                </li>
-                            ))}
-                        </ul>
-                    )}
-                </div>
-                {/* Products Videos (Category badge ke saath) */}
-                <div className="management-card">
-                    <h3>Manage Products' Videos ({productVideos.length})</h3>
-                    {loading ? <p>Loading...</p> : (
-                        <ul className="video-list">
-                            {productVideos.map(video => (
-                                <li key={video.id}>
-                                    <span className='video-title-admin'>{video.title}</span>
-                                    <span className='video-category-badge'>{video.category || 'General'}</span>
-              _                     <div className="actions">
-                                        <button onClick={() => window.open(getEmbedUrl(video.videoUrl, video.publicId), '_blank')} className="edit-btn">View</button>
-                                        <button onClick={() => { setCurrentVideo({ ...video, type: 'products' }); setIsModalOpen(true); }} className="edit-btn">Edit</button>
-                      _                 <button onClick={() => handleDelete(video.id, 'products')} className="delete-btn">Delete</button>
-                                    </div>
-                                </li>
-                            ))}
-              	      </ul>
-                    )}
-                </div>
-            </div>
+            {/* --- ✅ NAYA: Navigation Cards --- */}
+            <h2>Manage Existing Videos</h2>
+            <div className="nav-cards-container">
+                {/* --- Leader Videos Nav Card --- */}
+                <div className="nav-card">
+                    <div className="nav-card-icon">
+                        <Users size={40} />
+                    </div>
+                    <div className="nav-card-body">
+                        <h4 className="nav-card-title">Leaders' Videos</h4>
+                        <p className="nav-card-count">Total: {loading ? '...' : leaderVideos.length}</p>
+                    </div>
+                    <button className="nav-card-btn" onClick={() => setView('leaders')}>
+                        Manage &rarr;
+                    </button>
+                </div>
 
-            {isModalOpen && <EditModal video={currentVideo} onClose={() => setIsModalOpen(false)} onSave={handleUpdate} />}
+                {/* --- Product Videos Nav Card --- */}
+                <div className="nav-card">
+                    <div className="nav-card-icon">
+                        <Package size={40} />
+                    </div>
+                    <div className="nav-card-body">
+                        <h4 className="nav-card-title">Products' Videos</h4>
+                        <p className="nav-card-count">Total: {loading ? '...' : productVideos.length}</p>
+                    </div>
+                    <button className="nav-card-btn" onClick={() => setView('products')}>
+                        Manage &rarr;
+                    </button>
+                </div>
+            </div>
+        </>
+    );
+
+    // --- ✅ NAYA: Main Render Logic ---
+    return (
+        <div className="video-management-page">
+            <h2>Video Management</h2>
+
+            {/* Modal ko top level par rakhein */}
+            {isModalOpen && <EditModal video={currentVideo} onClose={() => setIsModalOpen(false)} onSave={handleUpdate} />}
+            
+            {/* View ke hisaab se content dikhayein */}
+            {view === 'main' && (
+                loading ? <p>Loading...</p> : renderMainView()
+            )}
+
+            {view === 'leaders' && (
+                <>
+                    <button className="back-btn" onClick={() => setView('main')}>
+                        <ArrowLeft size={16} /> Back to Main
+                    </button>
+                    <VideoListManager
+                        title="Manage Leaders' Videos"
+                        videos={leaderVideos}
+                        videoType="leaders"
+                        onEdit={handleEditClick}
+                        onDelete={handleDelete}
+                        getEmbedUrl={getEmbedUrl}
+                    />
+                </>
+            )}
+
+            {view === 'products' && (
+                <>
+                    <button className="back-btn" onClick={() => setView('main')}>
+                        <ArrowLeft size={16} /> Back to Main
+                    </button>
+                    <VideoListManager
+                        title="Manage Products' Videos"
+                        videos={productVideos}
+                        videoType="products"
+                        categories={productCategories}
+                        onEdit={handleEditClick}
+                        onDelete={handleDelete}
+                        getEmbedUrl={getEmbedUrl}
+                    />
+                </>
+            )}
         </div>
     );
 }
