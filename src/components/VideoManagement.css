@@ -379,3 +379,34 @@
   font-size: 0.95rem;
   line-height: 1.5;
 }
+
+/* VideoManagement.css mein add karein */
+.video-list li {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 10px;
+}
+
+.video-title-admin {
+    flex-grow: 1; /* Title ko jagah dega */
+    text-align: left;
+}
+
+.video-category-badge {
+    background-color: #e0e0e0;
+    color: #333;
+    padding: 3px 8px;
+    border-radius: 10px;
+    font-size: 0.8rem;
+    font-weight: 600;
+    flex-shrink: 0; /* Yeh shrink nahi hoga */
+}
+
+.form-row {
+    display: flex;
+    gap: 15px;
+}
+.form-row .form-group {
+    flex: 1; /* Dono fields ko barabar space dega */
+}
