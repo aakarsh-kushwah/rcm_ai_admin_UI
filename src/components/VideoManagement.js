@@ -1,64 +1,64 @@
 import React, { useState, useEffect, useCallback, useMemo } from 'react';
-import './VideoManagement.css'; 
+import './VideoManagement.css'; 
 // ✅ Naye icons import karein
 import { Users, Package, ArrowLeft } from 'lucide-react'; 
 
 // --- Category List (Unchanged) ---
 const productCategories = [
-    "Health Care", "Men's Fashion", "Women's Fashion", "Kid's Fashion",
-    "Footwears", "Bags & Accessories", "Bedsheets & Towels", "Personal Care",
-    "Household", "Electronics", "Foods & Grocery", "Home & Kitchen",
-    "Paint & Construction", "Agriculture", "Stationery"
+    "Health Care", "Men's Fashion", "Women's Fashion", "Kid's Fashion",
+    "Footwears", "Bags & Accessories", "Bedsheets & Towels", "Personal Care",
+    "Household", "Electronics", "Foods & Grocery", "Home & Kitchen",
+    "Paint & Construction", "Agriculture", "Stationery"
 ];
 
 // =======================================================
 // EditModal Component (Unchanged)
 // =======================================================
 function EditModal({ video, onClose, onSave }) {
-    const [title, setTitle] = useState(video.title);
-    const [description, setDescription] = useState(video.description);
-    const [category, setCategory] = useState(video.category || 'General');
+    const [title, setTitle] = useState(video.title);
+    const [description, setDescription] = useState(video.description);
+    const [category, setCategory] = useState(video.category || 'General');
 
-    const handleSave = () => {
-        const dataToSave = { title, description };
-        if (video.type === 'products') {
-            dataToSave.category = category;
-        }
-        onSave(video.id, video.type, dataToSave);
-    };
+    const handleSave = () => {
+        const dataToSave = { title, description };
+        if (video.type === 'products') {
+            dataToSave.category = category;
+        }
+        onSave(video.id, video.type, dataToSave);
+    };
 
-    return (
-        <div className="modal-overlay">
-            <div className="modal-content">
-                <h2>Edit Video Details</h2>
-                <div className="form-group">
-                    <label>Title</label>
-                    <input type="text" value={title} onChange={(e) => setTitle(e.target.value)} />
-                </div>
-                <div className="form-group">
-                    <label>Description</label>
-                    <textarea value={description} onChange={(e) => setDescription(e.target.value)} rows="4"></textarea>
-                </div>
-                {video.type === 'products' && (
-                    <div className="form-group">
-                        <label>Category</label>
-                        <select value={category} onChange={(e) => setCategory(e.target.value)}>
-                            {productCategories.map(cat => (
-                                <option key={cat} value={cat}>{cat}</option>
-                            ))}
-                            {!productCategories.includes(category) && (
-                                <option key={category} value={category}>{category}</option>
-                            )}
-          _             </select>
-                    </div>
-                )}
-                <div className="modal-actions">
-                    <button onClick={onClose} className="cancel-btn">Cancel</button>
-                    <button onClick={handleSave} className="save-btn">Save Changes</button>
-                </div>
-            </div>
-        </div>
-    );
+    return (
+        <div className="modal-overlay">
+            <div className="modal-content">
+                <h2>Edit Video Details</h2>
+                <div className="form-group">
+                    <label>Title</label>
+                    <input type="text" value={title} onChange={(e) => setTitle(e.target.value)} />
+                </div>
+                <div className="form-group">
+                    <label>Description</label>
+                    <textarea value={description} onChange={(e) => setDescription(e.target.value)} rows="4"></textarea>
+                </div>
+                {video.type === 'products' && (
+                    <div className="form-group">
+                        <label>Category</label>
+                        <select value={category} onChange={(e) => setCategory(e.target.value)}>
+                            {productCategories.map(cat => (
+                                <option key={cat} value={cat}>{cat}</option>
+                            ))}
+                            {!productCategories.includes(category) && (
+                                <option key={category} value={category}>{category}</option>
+                            )}
+                        </select>
+                    </div>
+                )}
+                <div className="modal-actions">
+                    <button onClick={onClose} className="cancel-btn">Cancel</button>
+                    <button onClick={handleSave} className="save-btn">Save Changes</button>
+                </div>
+            </div>
+        </div>
+    );
 }
 
 // =======================================================
@@ -154,131 +154,131 @@ function VideoListManager({ title, videos, videoType, categories = [], onEdit, o
 // Main Video Management Component (✅ NAYA LAYOUT)
 // =======================================================
 function VideoManagement() {
-    // --- States (Unchanged) ---
-    const [urls, setUrls] = useState(''); 
-    const [selectedCategory, setSelectedCategory] = useState('leaders');
-    const [isImporting, setIsImporting] = useState(false);
-    const [importMessage, setImportMessage] = useState('');
-    const [importMessageType, setImportMessageType] = useState('');
-    const [leaderVideos, setLeaderVideos] = useState([]);
-    const [productVideos, setProductVideos] = useState([]);
-    const [loading, setLoading] = useState(true);
-    const [isModalOpen, setIsModalOpen] = useState(false);
-    const [currentVideo, setCurrentVideo] = useState(null);
-    
-    // --- ✅ NAYA STATE: View Management ---
+    // --- States (Unchanged) ---
+    const [urls, setUrls] = useState(''); 
+    const [selectedCategory, setSelectedCategory] = useState('leaders');
+    const [isImporting, setIsImporting] = useState(false);
+    const [importMessage, setImportMessage] = useState('');
+    const [importMessageType, setImportMessageType] = useState('');
+    const [leaderVideos, setLeaderVideos] = useState([]);
+    const [productVideos, setProductVideos] = useState([]);
+    const [loading, setLoading] = useState(true);
+    const [isModalOpen, setIsModalOpen] = useState(false);
+    const [currentVideo, setCurrentVideo] = useState(null);
+    
+    // --- ✅ NAYA STATE: View Management ---
     // 'main' = Hub page (Import + Nav Cards)
     // 'leaders' = Leaders list view
     // 'products' = Products list view
-    const [view, setView] = useState('main'); 
+    const [view, setView] = useState('main'); 
 
-    const token = localStorage.getItem('token'); 
-    const API_URL = process.env.REACT_APP_API_URL;
+    const token = localStorage.getItem('token'); 
+    const API_URL = process.env.REACT_APP_API_URL;
 
-    // --- Logic & Handlers (Unchanged) ---
-    const fetchVideos = useCallback(async () => {
-        setLoading(true);
-        setImportMessage('');
-        if (!token) { /* ... error handling ... */ setLoading(false); return; }
-        
-        try {
-            const headers = { 'Authorization': `Bearer ${token}` };
-            if (!API_URL) throw new Error("API URL not configured");
+    // --- Logic & Handlers (Unchanged) ---
+    const fetchVideos = useCallback(async () => {
+        setLoading(true);
+        setImportMessage('');
+        if (!token) { /* ... error handling ... */ setLoading(false); return; }
+        
+        try {
+            const headers = { 'Authorization': `Bearer ${token}` };
+            if (!API_URL) throw new Error("API URL not configured");
 
-            const [leadersRes, productsRes] = await Promise.all([
-                fetch(`${API_URL}/api/videos/leaders?page=1&limit=1000`, { headers }),
-                fetch(`${API_URL}/api/videos/products?page=1&limit=1000`, { headers })
-            ]);
-            
-            const leadersData = await leadersRes.json();
-            const productsData = await productsRes.json();
-            
-            if (leadersData.success) setLeaderVideos(leadersData.data || []);
-            if (productsData.success) setProductVideos(productsData.data || []);
+            const [leadersRes, productsRes] = await Promise.all([
+                fetch(`${API_URL}/api/videos/leaders?page=1&limit=1000`, { headers }),
+                fetch(`${API_URL}/api/videos/products?page=1&limit=1000`, { headers })
+            ]);
+            
+            const leadersData = await leadersRes.json();
+            const productsData = await productsRes.json();
+            
+            if (leadersData.success) setLeaderVideos(leadersData.data || []);
+            if (productsData.success) setProductVideos(productsData.data || []);
 
-        } catch (error) {
-            setImportMessage(`Error: ${error.message || 'Failed to load existing videos.'}`);
-            setImportMessageType('error');
-        } finally {
-            setLoading(false);
-        }
-    }, [token, API_URL]);
+        } catch (error) {
+            setImportMessage(`Error: ${error.message || 'Failed to load existing videos.'}`);
+            setImportMessageType('error');
+        } finally {
+            setLoading(false);
+        }
+    }, [token, API_URL]);
 
-    useEffect(() => {
-        fetchVideos();
-    }, [fetchVideos]);
+    useEffect(() => {
+        fetchVideos();
+    }, [fetchVideos]);
 
-    const handleBatchScrapeImport = async (e) => {
-        e.preventDefault();
-        const urlList = urls.split('\n').filter(url => url.trim() !== ''); 
-        if (urlList.length === 0) { /* ... error handling ... */ return; }
-        if (!token) { return; }
+    const handleBatchScrapeImport = async (e) => {
+        e.preventDefault();
+        const urlList = urls.split('\n').filter(url => url.trim() !== ''); 
+        if (urlList.length === 0) { /* ... error handling ... */ return; }
+        if (!token) { return; }
 
-        setIsImporting(true);
-        setImportMessage(`Importing ${urlList.length} video(s)...`);
-        setImportMessageType('info');
+        setIsImporting(true);
+        setImportMessage(`Importing ${urlList.length} video(s)...`);
+        setImportMessageType('info');
 
-        const videoType = (selectedCategory === 'leaders') ? 'leaders' : 'products';
-        const category = (selectedCategory === 'leaders') ? null : selectedCategory;
+        const videoType = (selectedCategory === 'leaders') ? 'leaders' : 'products';
+        const category = (selectedCategory === 'leaders') ? null : selectedCategory;
 
-        try {
-            const importResponse = await fetch(`${API_URL}/api/videos/batch-scrape-import`, {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
-                body: JSON.stringify({ urls: urlList, videoType: videoType, category: category }),
-            });
+        try {
+            const importResponse = await fetch(`${API_URL}/api/videos/batch-scrape-import`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
+                body: JSON.stringify({ urls: urlList, videoType: videoType, category: category }),
+            });
 
-            const data = await importResponse.json();
-            if (!importResponse.ok || !data.success) { throw new Error(data.message); }
+            const data = await importResponse.json();
+            if (!importResponse.ok || !data.success) { throw new Error(data.message); }
 
-            setImportMessage(data.message); 
-            setImportMessageType('success');
-            fetchVideos(); // Refresh lists
-            setUrls('');
-        } catch (error) {
-            setImportMessage(`Import Failed: ${error.message}`);
-            setImportMessageType('error');
-        } finally {
-            setIsImporting(false);
-        }
-    };
+            setImportMessage(data.message); 
+            setImportMessageType('success');
+            fetchVideos(); // Refresh lists
+            setUrls('');
+        } catch (error) {
+            setImportMessage(`Import Failed: ${error.message}`);
+            setImportMessageType('error');
+        } finally {
+            setIsImporting(false);
+        }
+    };
 
-    const handleDelete = async (videoId, type) => {
-        if (!window.confirm("Are you sure?")) return;
-        if (!token) { return; }
-        try {
-            await fetch(`${API_URL}/api/videos/${type}/${videoId}`, {
-                method: 'DELETE',
-                headers: { 'Authorization': `Bearer ${token}` }
-            });
-            fetchVideos(); // Refresh lists
-        } catch (error) { alert("Failed to delete video."); }
-    };
+    const handleDelete = async (videoId, type) => {
+        if (!window.confirm("Are you sure?")) return;
+        if (!token) { return; }
+        try {
+            await fetch(`${API_URL}/api/videos/${type}/${videoId}`, {
+                method: 'DELETE',
+                headers: { 'Authorization': `Bearer ${token}` }
+            });
+            fetchVideos(); // Refresh lists
+        } catch (error) { alert("Failed to delete video."); }
+    };
 
-    const handleUpdate = async (videoId, type, data) => {
-        if (!token) { return; }
-        try {
-            await fetch(`${API_URL}/api/videos/${type}/${videoId}`, {
-                method: 'PUT',
-                headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
-                // ✅ YEH LINE FIX KI GAYI HAI
-                body: JSON.stringify(data),
-            });
-            setIsModalOpen(false);
-            fetchVideos(); // Refresh lists
-        } catch (error) { alert("Failed to update video."); }
-    };
+    const handleUpdate = async (videoId, type, data) => {
+        if (!token) { return; }
+        try {
+            await fetch(`${API_URL}/api/videos/${type}/${videoId}`, {
+                method: 'PUT',
+                headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
+                // ✅ YEH LINE FIX KI GAYI HAI
+                body: JSON.stringify(data),
+            });
+            setIsModalOpen(false);
+            fetchVideos(); // Refresh lists
+        } catch (error) { alert("Failed to update video."); }
+    };
     const handleEditClick = (video) => {
         setCurrentVideo(video);
         setIsModalOpen(true);
     };
-    
-    const getEmbedUrl = (url, publicId) => {
-        if (publicId && publicId.length === 11) {
-            return `https://www.youtube.com/embed/${publicId}?autoplay=0`;
-        }
-        return url; 
-    };
+    
+    const getEmbedUrl = (url, publicId) => {
+        if (publicId && publicId.length === 11) {
+            return `https://www.youtube.com/embed/${publicId}?autoplay=0`;
+        }
+        return url; 
+    };
 
     // --- ✅ NAYA: Render Function for Main Hub ---
     const renderMainView = () => (
@@ -290,7 +290,7 @@ function VideoManagement() {
                 <form className="upload-form" onSubmit={handleBatchScrapeImport}>
                     <div className="form-group">
                         <label>YouTube Video URLs (One per line) *</label>
-                        <textarea 
+                        <textarea 
                             rows="7"
                             value={urls}
                             onChange={(e) => setUrls(e.target.value)}
@@ -352,9 +352,9 @@ function VideoManagement() {
     );
 
     // --- ✅ NAYA: Main Render Logic ---
-    return (
-        <div className="video-management-page">
-            <h2>Video Management</h2>
+    return (
+        <div className="video-management-page">
+            <h2>Video Management</h2>
 
             {/* Modal ko top level par rakhein */}
             {isModalOpen && <EditModal video={currentVideo} onClose={() => setIsModalOpen(false)} onSave={handleUpdate} />}
@@ -396,8 +396,8 @@ function VideoManagement() {
                     />
                 </>
             )}
-        </div>
-    );
+        </div>
+    );
 }
 
 export default VideoManagement;
