@@ -72,8 +72,8 @@ const token = localStorage.getItem('token'); // ✅ FIXED: Standardized to 'toke
                             <tr key={sub.id}>
                                 <td data-label="ID">{sub.id}</td>
                                 <td data-label="Name">{sub.name}</td>
-                                <td data-label="Phone Number">{sub.phone_number}</td>
-                                <td data-label="Subscribed At">{new Date(sub.subscribed_at).toLocaleString()}</td>
+                                <td data-label="Phone Number">{sub.phoneNumber}</td>
+                                <td data-label="Subscribed At">{new Date(sub.subscribedAt).toLocaleString()}</td>
                             </tr>
                         ))}
                     </tbody>
