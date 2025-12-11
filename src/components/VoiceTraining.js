@@ -16,16 +16,23 @@ const VoiceTraining = () => {
         setMessage(null);
 
         try {
-            const token = localStorage.getItem('adminToken'); 
+            // ✅ FIX 1: Use 'token' (Matches what you set in LoginPage.js)
+            const token = localStorage.getItem('token'); 
+
+            if (!token) {
+                setMessage({ type: 'error', text: '🔒 Session Expired. Please Login Again.' });
+                setLoading(false);
+                return;
+            }
             
-            // ✅ FIX: Pointing to the new "Smart Response" endpoint
+            // ✅ FIX 2: Pointing to the new "Smart Response" endpoint
             const response = await fetch(`${process.env.REACT_APP_API_URL}/api/chat/admin/smart-response`, {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
                     'Authorization': `Bearer ${token}`
                 },
-                // ✅ FIX: Sending all 3 required fields
+                // ✅ FIX 3: Sending all 3 required fields
                 body: JSON.stringify({ question, answer, audioUrl })
             });
 
