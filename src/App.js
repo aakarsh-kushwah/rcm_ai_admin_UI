@@ -4,15 +4,16 @@ import { Routes, Route } from 'react-router-dom';
 // --- Admin Component Imports ---
 import AdminLayout from './components/Layout';              
 import AdminDashboard from './components/AdminDashboard';   
-import AdminProtectedRoute from './components/AdminProtectedRoute'; // Assuming your corrected file name
+import AdminProtectedRoute from './components/AdminProtectedRoute'; 
 import UserManagement from './components/UserManagement';
-import AdminManagement from './components/AdminManagement'; // ✅ NEW IMPORT
+import AdminManagement from './components/AdminManagement'; 
 import SubscriberList from './components/SubscriberList';
 import ChatViewer from './components/ChatViewer'; 
 import UserChatHistory from './components/UserChatHistory';
 import VideoManagement from './components/VideoManagement'; 
+import VoiceTraining from './components/VoiceTraining'; // ✅ IMPORT HERE
 import AdminSignupPage from './components/AdminSignupPage';
-import LoginPage from './components/LoginPage'; // Assuming Admin UI has its own Login
+import LoginPage from './components/LoginPage'; 
 
 function App() {
   return (
@@ -33,10 +34,14 @@ function App() {
 
         {/* Management Sections */}
         <Route path="users" element={<UserManagement />} />      
-        <Route path="admins" element={<AdminManagement />} /> {/* ✅ NEW ROUTE DEFINITION */}
+        <Route path="admins" element={<AdminManagement />} /> 
         <Route path="users/:userId/chats" element={<UserChatHistory />} />
         <Route path="subscribers" element={<SubscriberList />} />
         <Route path="videos" element={<VideoManagement />} />
+        
+        {/* ✅ NEW ROUTE ADDED HERE */}
+        <Route path="voice-training" element={<VoiceTraining />} />
+        
         <Route path="chats" element={<ChatViewer />} />
         
       </Route>

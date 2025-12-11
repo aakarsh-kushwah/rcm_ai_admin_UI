@@ -1,6 +1,6 @@
 import React from 'react';
 import { Link } from 'react-router-dom';
-import './Dashboard.css'; // Futuristic CSS imported
+import './Dashboard.css'; 
 
 // Helper component for styled dashboard cards
 const DashboardCard = ({ title, icon, path }) => (
@@ -26,33 +26,34 @@ function AdminDashboard() {
             <div className="dashboard-grid-futuristic">
                 <DashboardCard 
                     title="User Management" 
-                    icon="👥" // People Icon
+                    icon="👥" 
                     path="/users"
                 />
                 <DashboardCard 
                     title="Admin Accounts" 
-                    icon="🔑" // Key Icon
+                    icon="🔑" 
                     path="/admins" 
                 />
                 <DashboardCard 
                     title="Subscribers List" 
-                    icon="📧" // Envelope Icon
+                    icon="📧" 
                     path="/subscribers"
                 />
                 <DashboardCard 
                     title="Video Management" 
-                    icon="🎬" // Clapperboard Icon
+                    icon="🎬" 
                     path="/videos"
+                />
+                {/* ✅ NEW CARD ADDED HERE */}
+                <DashboardCard 
+                    title="AI Voice Training" 
+                    icon="🎙️" 
+                    path="/voice-training"
                 />
                 <DashboardCard 
                     title="Chat Viewer" 
-                    icon="💬" // Speech Bubble Icon
+                    icon="💬" 
                     path="/chats"
-                />
-                <DashboardCard 
-                    title="System Logs" 
-                    icon="⚙️" // Gear Icon
-                    path="/system-logs"
                 />
             </div>
         </div>
