@@ -1,14 +1,21 @@
 import React, { useState } from 'react';
-import './Dashboard.css'; // Reusing your existing styles
+import './Dashboard.css'; 
 
 const VoiceTraining = () => {
-    // We now need 3 states for the Smart FAQ logic
     const [question, setQuestion] = useState('');
     const [answer, setAnswer] = useState('');
-    const [audioUrl, setAudioUrl] = useState('');
+    const [audioFile, setAudioFile] = useState(null); // Changed from URL string to File object
     
     const [loading, setLoading] = useState(false);
     const [message, setMessage] = useState(null);
+
+    // File selection handler
+    const handleFileChange = (e) => {
+        const file = e.target.files[0];
+        if (file) {
+            setAudioFile(file);
+        }
+    };
 
     const handleSubmit = async (e) => {
         e.preventDefault();
@@ -16,7 +23,6 @@ const VoiceTraining = () => {
         setMessage(null);
 
         try {
-            // ✅ FIX 1: Use 'token' (Matches what you set in LoginPage.js)
             const token = localStorage.getItem('token'); 
 
             if (!token) {
@@ -24,26 +30,37 @@ const VoiceTraining = () => {
                 setLoading(false);
                 return;
             }
+
+            if (!audioFile) {
+                setMessage({ type: 'error', text: '⚠️ Please select an audio file.' });
+                setLoading(false);
+                return;
+            }
             
-            // ✅ FIX 2: Pointing to the new "Smart Response" endpoint
+            // ✅ CHANGE: Use FormData for File Uploads
+            const formData = new FormData();
+            formData.append('question', question);
+            formData.append('answer', answer);
+            formData.append('audioFile', audioFile); // Field name must match backend (upload.single('audioFile'))
+
             const response = await fetch(`${process.env.REACT_APP_API_URL}/api/chat/admin/smart-response`, {
                 method: 'POST',
                 headers: {
-                    'Content-Type': 'application/json',
+                    // ⚠️ NO Content-Type header needed! Fetch sets it automatically for FormData
                     'Authorization': `Bearer ${token}`
                 },
-                // ✅ FIX 3: Sending all 3 required fields
-                body: JSON.stringify({ question, answer, audioUrl })
+                body: formData
             });
 
             const data = await response.json();
 
             if (data.success) {
-                setMessage({ type: 'success', text: '✅ Smart Response Saved! (Zero Cost Mode Active)' });
-                // Reset form
+                setMessage({ type: 'success', text: '✅ Audio Uploaded & Smart Response Saved!' });
                 setQuestion('');
                 setAnswer('');
-                setAudioUrl('');
+                setAudioFile(null);
+                // Reset file input visually
+                document.getElementById('fileInput').value = ""; 
             } else {
                 setMessage({ type: 'error', text: `❌ Error: ${data.message}` });
             }
@@ -58,12 +75,12 @@ const VoiceTraining = () => {
     return (
         <div className="futuristic-dashboard-container">
             <h1 className="futuristic-heading">🧠 Smart AI Training</h1>
-            <p className="futuristic-subtitle">Define exact Q&A pairs to bypass AI costs and ensure perfect voice pronunciation.</p>
+            <p className="futuristic-subtitle">Upload voice files directly to train the AI.</p>
 
             <div className="dashboard-card-futuristic" style={{ maxWidth: '700px', margin: '2rem auto', cursor: 'default' }}>
                 <form onSubmit={handleSubmit} style={{ display: 'flex', flexDirection: 'column', gap: '1.5rem' }}>
                     
-                    {/* Field 1: The Trigger Question */}
+                    {/* 1. Question */}
                     <div>
                         <label style={{ color: '#00f2fe', marginBottom: '8px', display: 'block', fontWeight: 'bold' }}>
                             1. User Question (Trigger)
@@ -76,12 +93,9 @@ const VoiceTraining = () => {
                             required
                             style={inputStyle}
                         />
-                        <small style={{ color: '#aaa', marginTop: '5px', display: 'block' }}>
-                            If the user types this (or something similar), the AI won't be called.
-                        </small>
                     </div>
 
-                    {/* Field 2: The Text Answer */}
+                    {/* 2. Answer */}
                     <div>
                         <label style={{ color: '#00f2fe', marginBottom: '8px', display: 'block', fontWeight: 'bold' }}>
                             2. AI Text Answer (Script)
@@ -93,30 +107,37 @@ const VoiceTraining = () => {
                             required
                             style={{ ...inputStyle, minHeight: '100px' }}
                         />
-                        <small style={{ color: '#aaa', marginTop: '5px', display: 'block' }}>
-                            This exact text will be shown in the chat window.
-                        </small>
                     </div>
 
-                    {/* Field 3: The Audio URL */}
+                    {/* 3. File Upload (Replacing URL Input) */}
                     <div>
                         <label style={{ color: '#00f2fe', marginBottom: '8px', display: 'block', fontWeight: 'bold' }}>
-                            3. Cloudinary Audio URL
+                            3. Upload Voice Audio (MP3/WAV)
                         </label>
-                        <input 
-                            type="url" 
-                            value={audioUrl}
-                            onChange={(e) => setAudioUrl(e.target.value)}
-                            placeholder="https://res.cloudinary.com/..."
-                            required
-                            style={inputStyle}
-                        />
-                         <small style={{ color: '#aaa', marginTop: '5px', display: 'block' }}>
-                            The pre-recorded voice file for the answer above.
-                        </small>
+                        <div style={{ 
+                            border: '2px dashed rgba(0, 242, 254, 0.3)', 
+                            padding: '20px', 
+                            borderRadius: '8px', 
+                            textAlign: 'center',
+                            background: 'rgba(255, 255, 255, 0.02)'
+                        }}>
+                            <input 
+                                id="fileInput"
+                                type="file" 
+                                accept="audio/*"
+                                onChange={handleFileChange}
+                                required
+                                style={{ color: '#fff' }}
+                            />
+                            {audioFile && (
+                                <p style={{ color: '#4facfe', marginTop: '10px', fontSize: '14px' }}>
+                                    Selected: {audioFile.name}
+                                </p>
+                            )}
+                        </div>
                     </div>
 
-                    {/* Status Message */}
+                    {/* Messages */}
                     {message && (
                         <div style={{ 
                             padding: '12px', 
@@ -130,7 +151,6 @@ const VoiceTraining = () => {
                         </div>
                     )}
 
-                    {/* Submit Button */}
                     <button 
                         type="submit" 
                         disabled={loading}
@@ -147,7 +167,7 @@ const VoiceTraining = () => {
                             marginTop: '10px'
                         }}
                     >
-                        {loading ? 'Saving to Database...' : '💾 Save Smart Response'}
+                        {loading ? 'Uploading & Saving...' : '☁️ Upload & Save'}
                     </button>
                 </form>
             </div>
@@ -155,7 +175,6 @@ const VoiceTraining = () => {
     );
 };
 
-// Common Input Style for cleaner code
 const inputStyle = {
     width: '100%', 
     padding: '12px', 
