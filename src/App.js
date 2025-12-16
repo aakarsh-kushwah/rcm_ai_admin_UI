@@ -14,6 +14,7 @@ import VideoManagement from './components/VideoManagement';
 import VoiceTraining from './components/VoiceTraining'; // ✅ IMPORT HERE
 import AdminSignupPage from './components/AdminSignupPage';
 import LoginPage from './components/LoginPage'; 
+import SendNotification from './components/SendNotification';
 
 function App() {
   return (
@@ -43,6 +44,8 @@ function App() {
         <Route path="voice-training" element={<VoiceTraining />} />
         
         <Route path="chats" element={<ChatViewer />} />
+        <Route path="sendnotifications" element={<SendNotification />} />
+
         
       </Route>
       

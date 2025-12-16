@@ -44,7 +44,6 @@ function AdminDashboard() {
                     icon="🎬" 
                     path="/videos"
                 />
-                {/* ✅ NEW CARD ADDED HERE */}
                 <DashboardCard 
                     title="AI Voice Training" 
                     icon="🎙️" 
@@ -54,6 +53,13 @@ function AdminDashboard() {
                     title="Chat Viewer" 
                     icon="💬" 
                     path="/chats"
+                />
+                
+                {/* ✅ NEW: Notification Center Card */}
+                <DashboardCard 
+                    title="Send Notifications" 
+                    icon="📢" 
+                    path="/sendnotifications"
                 />
             </div>
         </div>
