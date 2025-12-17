@@ -1,153 +1,167 @@
-/* ==================================== */
-/* 1. Global Reset & Body Styling */
-/* ==================================== */
-
-/* Optional: Better font and box model */
-body {
-    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-    background-color: #f3f4f6; /* Light gray background */
-    margin: 0;
-    padding: 0;
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    min-height: 100vh; /* Ensure it takes full viewport height */
+:root {
+  --sidebar-w-collapsed: 70px;
+  --sidebar-w-expanded: 220px;
+  --accent-color: #6366f1;
+  --bg-sidebar: rgba(15, 23, 42, 0.95);
 }
 
-/* ==================================== */
-/* 2. Login Container */
-/* ==================================== */
+.admin-layout {
+  display: flex;
+  min-height: 100vh;
+  background-color: #020617;
+}
 
-.login-container {
-    background-color: #ffffff; /* White card background */
-    padding: 2.5rem; /* 40px padding */
-    border-radius: 1rem; /* Rounded corners */
-    box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05); /* Soft shadow */
+/* SIDEBAR CORE */
+.sidebar {
+  position: fixed;
+  left: 0;
+  top: 0;
+  height: 100vh;
+  background: var(--bg-sidebar);
+  backdrop-filter: blur(15px);
+  border-right: 1px solid rgba(255, 255, 255, 0.1);
+  width: var(--sidebar-w-collapsed);
+  transition: width 0.35s cubic-bezier(0.4, 0, 0.2, 1);
+  display: flex;
+  flex-direction: column;
+  z-index: 1000;
+  overflow-x: hidden; /* Hide text when collapsed */
+  white-space: nowrap;
+}
+
+.sidebar.expanded {
+  width: var(--sidebar-w-expanded);
+  box-shadow: 20px 0 50px rgba(0, 0, 0, 0.5);
+}
+
+/* HEADER & LOGO */
+.sidebar-header {
+  height: 80px;
+  display: flex;
+  align-items: center;
+  padding: 0 18px;
+  gap: 15px;
+}
+
+.logo-circle {
+  min-width: 35px;
+  height: 35px;
+  background: var(--accent-color);
+  border-radius: 8px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: bold;
+  color: white;
+}
+
+.logo-text {
+  font-weight: 700;
+  color: white;
+  opacity: 0;
+  transition: opacity 0.2s;
+}
+.sidebar.expanded .logo-text { opacity: 1; }
+
+/* NAVIGATION LINKS */
+.nav-menu {
+  flex: 1;
+  padding: 20px 0;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.nav-link {
+  display: flex;
+  align-items: center;
+  padding: 12px 22px;
+  text-decoration: none;
+  color: #94a3b8;
+  gap: 20px;
+  transition: 0.2s;
+}
+
+.nav-link:hover {
+  background: rgba(255, 255, 255, 0.05);
+  color: white;
+}
+
+.nav-link.active {
+  background: rgba(99, 102, 241, 0.15);
+  color: var(--accent-color);
+  border-right: 3px solid var(--accent-color);
+}
+
+.nav-icon { font-size: 1.4rem; }
+
+.link-name {
+  opacity: 0;
+  transition: 0.2s;
+  font-weight: 500;
+  font-size: 0.95rem;
+}
+.sidebar.expanded .link-name { opacity: 1; }
+
+/* FOOTER / LOGOUT */
+.sidebar-footer {
+  padding: 20px 0;
+  border-top: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.logout-icon-btn {
+  width: 100%;
+  background: transparent;
+  border: none;
+  display: flex;
+  align-items: center;
+  padding: 12px 22px;
+  gap: 20px;
+  color: #ef4444;
+  cursor: pointer;
+  font-family: inherit;
+}
+
+/* CONTENT AREA */
+.content-area {
+  flex: 1;
+  margin-left: var(--sidebar-w-collapsed); /* Space for collapsed sidebar */
+  padding: 2rem;
+  transition: margin-left 0.35s;
+}
+
+/* MOBILE VIEW */
+@media (max-width: 768px) {
+  .sidebar {
     width: 100%;
-    max-width: 400px; /* Max width for desktop/tablet */
-    margin: 20px; /* Margin for small screens */
-    text-align: center;
-}
-
-.login-container h2 {
-    font-size: 2rem; /* Large heading */
-    font-weight: 700;
-    color: #1f2937; /* Dark text */
-    margin-bottom: 2rem; /* 32px margin */
-    border-bottom: 2px solid #4f46e5; /* Accent border color (Indigo) */
-    display: inline-block;
-    padding-bottom: 0.5rem;
-}
-
-/* ==================================== */
-/* 3. Form Elements (Inputs & Buttons) */
-/* ==================================== */
-
-.login-container form {
-    display: flex;
+    height: 65px;
+    top: auto;
+    bottom: 0;
+    flex-direction: row;
+    overflow-x: auto; /* Name shortcut ensure scroll is minimal */
+    padding: 0 10px;
+  }
+  
+  .sidebar.expanded { width: 100%; height: 65px; }
+  .sidebar-header, .logo-text, .link-name { display: none; }
+  
+  .nav-menu {
+    flex-direction: row;
+    padding: 0;
+    align-items: center;
+    width: 100%;
+    justify-content: space-between;
+  }
+  
+  .nav-link {
+    padding: 10px;
     flex-direction: column;
-    gap: 1.25rem; /* 20px space between elements */
-}
-
-.login-container input {
-    padding: 1rem; /* Larger padding for better touch targets */
-    border: 1px solid #d1d5db; /* Light gray border */
-    border-radius: 0.5rem;
-    font-size: 1rem;
-    color: #374151; /* Medium dark text */
-    transition: border-color 0.3s, box-shadow 0.3s;
-}
-
-.login-container input:focus {
-    border-color: #4f46e5; /* Indigo focus color */
-    outline: none;
-    box-shadow: 0 0 0 3px rgba(79, 70, 229, 0.2); /* Light indigo glow */
-}
-
-/* Primary Login Button */
-.login-container button[type="submit"] {
-    background-color: #4f46e5; /* Primary Indigo color */
-    color: white;
-    padding: 1rem;
-    border: none;
-    border-radius: 0.5rem;
-    font-size: 1.125rem; /* Larger font */
-    font-weight: 600;
-    cursor: pointer;
-    transition: background-color 0.3s, transform 0.1s;
-}
-
-.login-container button[type="submit"]:hover {
-    background-color: #4338ca; /* Darker Indigo on hover */
-}
-
-.login-container button[type="submit"]:active {
-    transform: scale(0.99);
-}
-
-/* Admin Setup Section */
-.login-container hr {
-    border: 0;
-    height: 1px;
-    background-color: #e5e7eb; /* Light separator line */
-    margin: 2rem 0;
-}
-
-.login-container p {
-    color: #6b7280; /* Gray text for instruction */
-    margin-bottom: 1rem;
-    font-size: 0.95rem;
-}
-
-/* Secondary Admin Setup Button */
-.admin-setup-button {
-    background-color: #10b981; /* Secondary Green color (Teal/Emerald) */
-    color: white;
-    padding: 0.75rem 1.5rem;
-    border: none;
-    border-radius: 0.5rem;
-    font-size: 1rem;
-    font-weight: 500;
-    cursor: pointer;
-    transition: background-color 0.3s;
-    width: 100%; /* Full width for consistency */
-}
-
-.admin-setup-button:hover {
-    background-color: #059669; /* Darker Green on hover */
-}
-
-/* Reset Link Default Button Style */
-.login-container a button {
-    text-decoration: none;
-}
-
-/* ==================================== */
-/* 4. Responsiveness (Media Queries) */
-/* ==================================== */
-
-/* Small devices (like older smartphones) */
-@media (max-width: 480px) {
-    .login-container {
-        padding: 1.5rem; /* Slightly less padding */
-        border-radius: 0.75rem;
-        margin: 10px;
-    }
-    
-    .login-container h2 {
-        font-size: 1.75rem;
-    }
-
-    .login-container form {
-        gap: 1rem;
-    }
-}
-
-/* Ensure the card is centered if the screen is very short */
-@media (max-height: 600px) and (min-width: 481px) {
-    body {
-        align-items: flex-start;
-        padding-top: 20px;
-        padding-bottom: 20px;
-    }
+    gap: 2px;
+  }
+  
+  .nav-link.active { border-right: none; border-top: 3px solid var(--accent-color); }
+  
+  .content-area { margin-left: 0; padding-bottom: 80px; }
+  
+  .sidebar-footer { border: none; padding: 0; display: flex; align-items: center; }
 }

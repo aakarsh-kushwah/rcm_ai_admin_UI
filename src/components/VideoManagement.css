@@ -412,3 +412,64 @@
 .modal-actions .cancel-btn:hover { background-color: #e0e0e0; }
 .modal-actions .save-btn { background-color: #28a745; color: #fff; }
 .modal-actions .save-btn:hover { background-color: #218838; }
+
+/* Channel Manager Styles */
+.channels-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+    gap: 20px;
+    margin-top: 20px;
+}
+
+.channel-card {
+    background: white;
+    padding: 15px;
+    border-radius: 12px;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+    text-align: center;
+    position: relative;
+    border: 1px solid #eee;
+}
+
+.channel-logo-preview {
+    width: 80px;
+    height: 80px;
+    border-radius: 50%;
+    object-fit: cover;
+    margin-bottom: 10px;
+    border: 2px solid #007bff;
+}
+
+.create-channel-form {
+    display: flex;
+    gap: 10px;
+    flex-wrap: wrap;
+}
+
+.create-channel-form input {
+    flex: 1;
+    padding: 10px;
+    border: 1px solid #ddd;
+    border-radius: 6px;
+}
+
+.delete-icon-btn {
+    position: absolute;
+    top: 10px;
+    right: 10px;
+    background: #ffebeb;
+    color: #d32f2f;
+    border: none;
+    padding: 5px;
+    border-radius: 4px;
+    cursor: pointer;
+}
+
+.channel-select {
+    width: 100%;
+    padding: 10px;
+    border-radius: 6px;
+    border: 1px solid #ccc;
+    background-color: #fff;
+    font-size: 16px;
+}

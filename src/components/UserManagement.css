@@ -1,118 +1,101 @@
-/* --- Global Container and Typography --- */
-.user-management-container {
-    padding: 16px;
-    max-width: 1280px; 
-    margin: 0 auto;
-    font-family: Arial, sans-serif;
+.crm-panel { max-width: 800px; margin: 0 auto; }
+
+/* Sticky Omni-Search */
+.sticky-search-container {
+  position: sticky;
+  top: 0;
+  padding: 10px 0 25px;
+  background: var(--bg-dark);
+  z-index: 50;
 }
 
-.user-management-header {
-    font-size: 1.875rem; 
-    font-weight: 700;
-    color: #1f2937; 
-    margin-bottom: 1.5rem;
-    border-bottom: 1px solid #e5e7eb;
-    padding-bottom: 0.5rem;
+.omni-search-bar {
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid var(--border);
+  border-radius: 100px;
+  display: flex;
+  align-items: center;
+  padding: 2px 20px;
 }
 
-.user-count {
-    color: #4f46e5; 
-    margin-left: 0.5rem;
+.omni-search-bar input {
+  background: transparent; border: none; color: white;
+  padding: 12px; width: 100%; font-size: 0.95rem; outline: none;
 }
 
-/* --- Alerts and Loading (Standard) --- */
-.loading-container {
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    height: 160px;
+/* User Card Styling */
+.user-card-pro {
+  background: var(--glass);
+  border: 1px solid var(--border);
+  border-radius: 20px;
+  padding: 18px;
+  margin-bottom: 15px;
+  cursor: pointer;
+  transition: 0.2s;
 }
-/* Spinner styles omitted for brevity, assume they are present */
-.loading-text { margin-left: 1rem; color: #4b5563; }
-.error-alert { background-color: #fee2e2; border: 1px solid #f87171; color: #b91c1c; padding: 1rem; border-radius: 0.375rem; margin: 1.5rem; }
-.error-bold { font-weight: 700; }
+.user-card-pro:active { transform: scale(0.96); }
 
-/* --- Table Styling --- */
-.table-wrapper {
-    box-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.1), 0 1px 2px 0 rgba(0, 0, 0, 0.06);
-    overflow-x: auto; 
-    border-radius: 0.5rem;
-}
+.card-inner { display: flex; align-items: center; gap: 18px; }
 
-.user-table {
-    min-width: 100%;
-    border-collapse: collapse;
-    background-color: white;
+.user-avatar-hex {
+  width: 52px; height: 52px; border-radius: 16px;
+  display: flex; align-items: center; justify-content: center;
+  font-weight: 800; color: white; font-size: 1.3rem;
 }
 
-.table-header {
-    padding: 12px;
-    text-align: left;
-    font-size: 0.75rem; 
-    font-weight: 500;
-    color: #6b7280; 
-    text-transform: uppercase;
-    letter-spacing: 0.05em;
-    background-color: #f9fafb; 
-    border-bottom: 1px solid #e5e7eb;
+.pro-name { 
+  margin: 0; font-size: 1.15rem; font-weight: 700; color: #fff; 
+  letter-spacing: -0.3px;
 }
 
-.table-data {
-    padding: 16px 12px;
-    white-space: nowrap;
-    font-size: 0.875rem; 
-    color: #6b7280; 
-    border-bottom: 1px solid #e5e7eb;
+.pro-details-row { display: flex; gap: 10px; margin-top: 5px; align-items: center; }
+
+.id-label { font-size: 0.7rem; color: #64748b; background: rgba(0,0,0,0.4); padding: 2px 8px; border-radius: 4px; }
+
+.email-label { 
+  color: #a5b4fc; font-size: 0.8rem; font-weight: 500;
+  background: rgba(99, 102, 241, 0.15); padding: 2px 8px; border-radius: 6px;
 }
 
-.name-col .table-data { font-weight: 500; color: #1f2937; }
-.email-col .table-data { color: #4f46e5; max-width: 250px; overflow: hidden; text-overflow: ellipsis; }
+.phone-preview { font-size: 0.75rem; color: #94a3b8; }
 
-.role-badge {
-    padding: 2px 8px;
-    border-radius: 9999px; 
-    font-size: 0.75rem;
-    font-weight: 600;
-    display: inline-flex;
+/* Bottom Action Sheet */
+.sheet-overlay {
+  position: fixed; inset: 0; background: rgba(0,0,0,0.8);
+  backdrop-filter: blur(8px); z-index: 2000;
+  display: flex; align-items: flex-end;
 }
 
-.role-user { background-color: #d1fae5; color: #065f46; }
-.role-admin { background-color: #fee2e2; color: #991b1b; }
-
-.no-users-message { text-align: center; padding: 16px; font-size: 0.875rem; color: #6b7280; }
-.no-users-footer { margin-top: 1rem; text-align: center; color: #6b7280; }
-
-/* --- Responsive Design (Media Queries) --- */
-
-/* Details that only show on mobile screens */
-.mobile-detail {
-    display: none; 
-    font-size: 0.75rem; 
-    color: #6b7280; 
-    margin-top: 4px; 
+.bottom-sheet {
+  width: 100%; background: #0f172a; border-radius: 30px 30px 0 0;
+  padding: 30px; animation: slideIn 0.3s ease-out;
 }
 
-/* 640px और छोटी स्क्रीन (Mobile - sm) के लिए नियम */
-@media (max-width: 639px) {
-    /* Hide ID, Role, and Phone columns on smallest screens */
-    .id-col, .role-col, .phone-col {
-        display: none !important;
-    }
-    
-    /* Show RCM ID details under the name */
-    .rcm-detail {
-        display: block !important; 
-    }
+.large-avatar {
+  width: 80px; height: 80px; background: var(--accent); border-radius: 22px;
+  margin: 0 auto 15px; display: flex; align-items: center; justify-content: center;
+  font-size: 2.2rem; font-weight: 800; color: white;
 }
 
-/* 768px और छोटी स्क्रीन (Tablet - md) के लिए नियम */
-@media (max-width: 767px) {
-    /* Hide RCM ID column on tablet */
-    .rcm-col {
-        display: none !important;
-    }
-    /* Show Phone detail under email for medium screens */
-    .phone-detail {
-        display: block !important;
-    }
+.highlight-email { color: #a5b4fc; text-align: center; margin-top: 5px; }
+
+.sheet-actions { display: grid; grid-template-columns: 1fr; gap: 12px; margin-top: 30px; }
+
+.sheet-btn, .sheet-actions button {
+  background: rgba(255,255,255,0.05); border: 1px solid var(--border);
+  color: white; padding: 16px; border-radius: 16px; text-align: center;
+  text-decoration: none; font-weight: 600; cursor: pointer;
 }
+
+.wa-btn { border-color: #10b981; color: #10b981; }
+
+.sheet-close {
+  width: 100%; background: transparent; border: none; color: #64748b;
+  margin-top: 20px; font-weight: 600;
+}
+
+@keyframes slideIn { from { transform: translateY(100%); } to { transform: translateY(0); } }
+
+.loader-box { height: 60vh; display: flex; align-items: center; justify-content: center; }
+.spin { width: 40px; height: 40px; border: 3px solid var(--border); border-top-color: var(--accent); border-radius: 50%; animation: rot 1s infinite linear; }
+@keyframes rot { to { transform: rotate(360deg); } }

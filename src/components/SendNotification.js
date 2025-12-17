@@ -1,44 +1,47 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import axios from 'axios';
-import './SendNotification.css'; // 👈 Import the CSS file here!
-
-// --- ICONS ---
-const UploadIcon = () => (
-  <svg xmlns="http://www.w3.org/2000/svg" className="upload-icon" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
-  </svg>
-);
-
-const SendIcon = () => (
-  <svg xmlns="http://www.w3.org/2000/svg" className="btn-icon" viewBox="0 0 20 20" fill="currentColor">
-    <path d="M10.894 2.553a1 1 0 00-1.788 0l-7 14a1 1 0 001.169 1.409l5-1.429A1 1 0 009 15.571V11a1 1 0 112 0v4.571a1 1 0 00.725.962l5 1.428a1 1 0 001.17-1.408l-7-14z" />
-  </svg>
-);
+import { useNavigate } from 'react-router-dom';
+import { motion, AnimatePresence } from 'framer-motion';
+import { 
+  Smartphone, Calendar, Send, Image as ImageIcon, 
+  Type, Link as LinkIcon, Layers, CheckCircle, 
+  AlertCircle, X, Loader2, Wand2 
+} from 'lucide-react';
+import toast, { Toaster } from 'react-hot-toast';
+import './SendNotification.css';
 
 const SendNotification = () => {
-  const [title, setTitle] = useState('');
-  const [body, setBody] = useState('');
-  const [imageUrl, setImageUrl] = useState('');
-  const [uploading, setUploading] = useState(false);
+  const navigate = useNavigate();
+  const fileInputRef = useRef(null);
+  
+  // Advanced State Management
+  const [activeTab, setActiveTab] = useState('content'); // content | actions | schedule
+  const [platform, setPlatform] = useState('ios'); // ios | android
   const [loading, setLoading] = useState(false);
+  const [uploading, setUploading] = useState(false);
+  
+  const [form, setForm] = useState({
+    title: '',
+    body: '',
+    imageUrl: '',
+    deepLink: '', // e.g., app://products/123
+    scheduledTime: '',
+    actionButtons: [], // e.g., [{ label: 'Buy', link: '' }]
+  });
 
-  // --- CONFIG ---
+  // Auth Check
+  useEffect(() => {
+    const token = localStorage.getItem('token');
+    if (!token) navigate('/login', { replace: true });
+  }, [navigate]);
+
+  // Cloudinary Optimization
   const CLOUD_NAME = process.env.REACT_APP_CLOUD_NAME;
   const UPLOAD_PRESET = process.env.REACT_APP_UPLOAD_PRESET;
 
-  // --- LOGIC: Auto-Resize Image ---
-  const optimizeUrl = (originalUrl) => {
-    return originalUrl.replace('/upload/', '/upload/w_1024,h_512,c_fill,g_auto,q_auto/');
-  };
-
-  const handleFileChange = async (e) => {
+  const handleFileUpload = async (e) => {
     const file = e.target.files[0];
     if (!file) return;
-
-    if (!CLOUD_NAME || !UPLOAD_PRESET) {
-      alert("❌ Missing Cloudinary Config in .env file!");
-      return;
-    }
 
     setUploading(true);
     const formData = new FormData();
@@ -46,174 +49,391 @@ const SendNotification = () => {
     formData.append("upload_preset", UPLOAD_PRESET);
 
     try {
-      const res = await axios.post(
-        `https://api.cloudinary.com/v1_1/${CLOUD_NAME}/image/upload`,
-        formData
-      );
-      
-      const perfectSizeUrl = optimizeUrl(res.data.secure_url);
-      setImageUrl(perfectSizeUrl);
-
+      const res = await axios.post(`https://api.cloudinary.com/v1_1/${CLOUD_NAME}/image/upload`, formData);
+      // Smart Crop optimization
+      const optimized = res.data.secure_url.replace('/upload/', '/upload/q_auto,f_auto,w_800/');
+      setForm({ ...form, imageUrl: optimized });
+      toast.success("Image uploaded successfully");
     } catch (error) {
-      console.error("Upload Error:", error);
-      alert("❌ Upload Failed");
+      toast.error("Upload failed");
     } finally {
       setUploading(false);
     }
   };
 
+  const handleAddAction = () => {
+    if (form.actionButtons.length >= 2) return toast.error("Max 2 actions allowed");
+    setForm({
+      ...form,
+      actionButtons: [...form.actionButtons, { label: 'New Action', link: '' }]
+    });
+  };
+
+  const updateAction = (index, field, value) => {
+    const newActions = [...form.actionButtons];
+    newActions[index][field] = value;
+    setForm({ ...form, actionButtons: newActions });
+  };
+
   const handleSend = async (e) => {
     e.preventDefault();
+    if(!form.title || !form.body) return toast.error("Title and Body are required");
+
     setLoading(true);
-    const token = localStorage.getItem('token'); 
+    const token = localStorage.getItem('token');
+    
+    // Payload Construction
+    const payload = {
+      title: form.title,
+      body: form.body,
+      imageUrl: form.imageUrl,
+      data: {
+        deepLink: form.deepLink,
+        actions: JSON.stringify(form.actionButtons)
+      },
+      scheduledTime: form.scheduledTime || new Date().toISOString()
+    };
 
     try {
       const res = await axios.post(
         `${process.env.REACT_APP_API_URL}/api/notifications/send`,
-        { title, body, imageUrl }, 
+        payload,
         { headers: { Authorization: `Bearer ${token}` } }
       );
-      
-      alert(`✅ Sent successfully to ${res.data.successCount} devices!`);
-      setTitle('');
-      setBody('');
-      setImageUrl('');
+      toast.success(`🚀 Campaign Launched! Reach: ${res.data.successCount || 'Global'}`);
+      setForm({ title: '', body: '', imageUrl: '', deepLink: '', actionButtons: [], scheduledTime: '' });
     } catch (err) {
-      console.error(err);
-      alert("❌ Failed to send notification.");
+      toast.error("Campaign failed to launch. Check server logs.");
     } finally {
       setLoading(false);
     }
   };
 
   return (
-    <div className="notification-page">
-      <div className="notification-container">
-        
-        {/* --- LEFT SIDE: FORM --- */}
-        <div className="form-card">
-          <div className="form-header">
-            <div className="header-icon">
-               <SendIcon />
+    <div className="workspace-container">
+      <Toaster position="top-center" reverseOrder={false} />
+      
+      {/* BACKGROUND ELEMENTS */}
+      <div className="ambient-glow glow-1"></div>
+      <div className="ambient-glow glow-2"></div>
+
+      <div className="dashboard-grid">
+        {/* === LEFT PANEL: CONTROL CENTER === */}
+        <section className="control-panel glass-panel">
+          <header className="panel-header">
+            <div className="header-icon-box">
+              <Send size={24} className="text-white" />
             </div>
             <div>
-              <h2 style={{margin:0, fontSize: '24px', color: '#1f2937'}}>Push Notification</h2>
-              <p style={{margin:0, fontSize: '14px', color: '#6b7280'}}>Send updates to all users instantly.</p>
+              <h1>Push Command Center</h1>
+              <p>Orchestrate global campaigns with precision.</p>
             </div>
+          </header>
+
+          <nav className="tab-nav">
+            <button 
+              className={`tab-btn ${activeTab === 'content' ? 'active' : ''}`} 
+              onClick={() => setActiveTab('content')}
+            >
+              <Type size={16} /> Content
+            </button>
+            <button 
+              className={`tab-btn ${activeTab === 'actions' ? 'active' : ''}`} 
+              onClick={() => setActiveTab('actions')}
+            >
+              <Layers size={16} /> Interactivity
+            </button>
+            <button 
+              className={`tab-btn ${activeTab === 'schedule' ? 'active' : ''}`} 
+              onClick={() => setActiveTab('schedule')}
+            >
+              <Calendar size={16} /> Schedule
+            </button>
+          </nav>
+
+          <div className="panel-content">
+            <AnimatePresence mode="wait">
+              {activeTab === 'content' && (
+                <motion.div 
+                  key="content"
+                  initial={{ opacity: 0, x: -20 }}
+                  animate={{ opacity: 1, x: 0 }}
+                  exit={{ opacity: 0, x: 20 }}
+                  className="form-group-stack"
+                >
+                  <div className="input-group">
+                    <label>Campaign Title <span className="badge-ai"><Wand2 size={10}/> AI</span></label>
+                    <input 
+                      type="text" 
+                      placeholder="e.g. Flash Sale Alert ⚡" 
+                      value={form.title}
+                      onChange={(e) => setForm({...form, title: e.target.value})}
+                      maxLength={50}
+                    />
+                    <div className="char-counter" style={{ width: `${(form.title.length/50)*100}%` }}></div>
+                  </div>
+
+                  <div className="input-group">
+                    <label>Message Body</label>
+                    <textarea 
+                      placeholder="Write impactful copy here..." 
+                      value={form.body}
+                      onChange={(e) => setForm({...form, body: e.target.value})}
+                      rows={3}
+                      maxLength={150}
+                    />
+                  </div>
+
+                  <div className="input-group">
+                    <label>Rich Media (Banner)</label>
+                    <div 
+                      className={`drop-zone ${form.imageUrl ? 'has-image' : ''}`}
+                      onClick={() => fileInputRef.current.click()}
+                    >
+                      <input 
+                        type="file" 
+                        ref={fileInputRef} 
+                        hidden 
+                        onChange={handleFileUpload} 
+                        accept="image/*"
+                      />
+                      {uploading ? (
+                        <Loader2 className="spinner" />
+                      ) : form.imageUrl ? (
+                        <div className="preview-image-container">
+                          <img src={form.imageUrl} alt="preview" />
+                          <button 
+                            className="remove-img-btn"
+                            onClick={(e) => { e.stopPropagation(); setForm({...form, imageUrl: ''}); }}
+                          >
+                            <X size={14} />
+                          </button>
+                        </div>
+                      ) : (
+                        <div className="placeholder-content">
+                          <ImageIcon size={32} />
+                          <span>Click to Upload 2:1 Aspect Ratio</span>
+                        </div>
+                      )}
+                    </div>
+                  </div>
+                </motion.div>
+              )}
+
+              {activeTab === 'actions' && (
+                <motion.div 
+                  key="actions"
+                  initial={{ opacity: 0, x: -20 }}
+                  animate={{ opacity: 1, x: 0 }}
+                  exit={{ opacity: 0, x: 20 }}
+                  className="form-group-stack"
+                >
+                  <div className="input-group">
+                    <label>Deep Link (On Click)</label>
+                    <div className="input-with-icon">
+                      <LinkIcon size={16} />
+                      <input 
+                        type="text" 
+                        placeholder="myapp://products/detail/123" 
+                        value={form.deepLink}
+                        onChange={(e) => setForm({...form, deepLink: e.target.value})}
+                      />
+                    </div>
+                  </div>
+
+                  <div className="action-buttons-manager">
+                    <div className="flex-row-between">
+                      <label>Action Buttons ({form.actionButtons.length}/2)</label>
+                      <button type="button" onClick={handleAddAction} className="text-btn">
+                        + Add Button
+                      </button>
+                    </div>
+                    {form.actionButtons.map((btn, i) => (
+                      <div key={i} className="action-row">
+                        <input 
+                          type="text" 
+                          placeholder="Label (e.g. Buy)" 
+                          value={btn.label}
+                          onChange={(e) => updateAction(i, 'label', e.target.value)}
+                        />
+                        <input 
+                          type="text" 
+                          placeholder="Action Link" 
+                          value={btn.link}
+                          onChange={(e) => updateAction(i, 'link', e.target.value)}
+                        />
+                        <button 
+                          className="delete-action"
+                          onClick={() => {
+                             const newActions = form.actionButtons.filter((_, idx) => idx !== i);
+                             setForm({...form, actionButtons: newActions});
+                          }}
+                        >
+                          <X size={14} />
+                        </button>
+                      </div>
+                    ))}
+                  </div>
+                </motion.div>
+              )}
+
+              {activeTab === 'schedule' && (
+                <motion.div 
+                  key="schedule"
+                  initial={{ opacity: 0, x: -20 }}
+                  animate={{ opacity: 1, x: 0 }}
+                  exit={{ opacity: 0, x: 20 }}
+                  className="form-group-stack center-content"
+                >
+                  <div className="schedule-card">
+                    <div className="radio-group">
+                      <label className={`radio-option ${!form.scheduledTime ? 'selected' : ''}`}>
+                        <input 
+                          type="radio" 
+                          name="schedule" 
+                          checked={!form.scheduledTime} 
+                          onChange={() => setForm({...form, scheduledTime: ''})}
+                        />
+                        <Send size={18} />
+                        <div className="radio-text">
+                          <span>Send Immediately</span>
+                          <small>Best for breaking news</small>
+                        </div>
+                      </label>
+                      <label className={`radio-option ${form.scheduledTime ? 'selected' : ''}`}>
+                        <input 
+                          type="radio" 
+                          name="schedule" 
+                          checked={!!form.scheduledTime} 
+                          onChange={() => setForm({...form, scheduledTime: new Date().toISOString().slice(0, 16)})} 
+                        />
+                        <Calendar size={18} />
+                        <div className="radio-text">
+                          <span>Schedule Later</span>
+                          <small>Optimize for local timezones</small>
+                        </div>
+                      </label>
+                    </div>
+                    
+                    {form.scheduledTime && (
+                      <input 
+                        type="datetime-local" 
+                        className="date-picker"
+                        value={form.scheduledTime}
+                        onChange={(e) => setForm({...form, scheduledTime: e.target.value})}
+                      />
+                    )}
+                  </div>
+                </motion.div>
+              )}
+            </AnimatePresence>
           </div>
 
-          <form onSubmit={handleSend}>
-            {/* Title Input */}
-            <div className="form-group">
-              <label className="form-label">Notification Title</label>
-              <input 
-                className="form-input" 
-                value={title} 
-                onChange={(e) => setTitle(e.target.value)} 
-                placeholder="e.g. Big Sale is Live! 🎉"
-                maxLength={50}
-                required 
-              />
-              <div className={`char-count ${title.length > 40 ? 'limit' : ''}`}>
-                {title.length}/50
-              </div>
-            </div>
-
-            {/* Body Input */}
-            <div className="form-group">
-              <label className="form-label">Message Body</label>
-              <textarea 
-                className="form-textarea" 
-                value={body} 
-                onChange={(e) => setBody(e.target.value)} 
-                placeholder="e.g. Check out the new features we just added..."
-                rows="3"
-                maxLength={150}
-                required 
-              />
-              <div className={`char-count ${body.length > 140 ? 'limit' : ''}`}>
-                {body.length}/150
-              </div>
-            </div>
-
-            {/* Image Upload */}
-            <div className="form-group">
-              <label className="form-label">Banner Image (Optional)</label>
-              <label className="upload-label">
-                
-                {uploading ? (
-                  <div style={{display:'flex', flexDirection:'column', alignItems:'center'}}>
-                    <div className="spinner"></div>
-                    <p style={{fontSize:'12px', color:'#2563eb'}}>Uploading...</p>
-                  </div>
-                ) : imageUrl ? (
-                   <img src={imageUrl} alt="Uploaded" className="preview-image" />
-                ) : (
-                  <>
-                    <UploadIcon />
-                    <p style={{fontSize:'14px', color:'#4b5563', fontWeight:'500'}}>Click to upload image</p>
-                    <p style={{fontSize:'12px', color:'#9ca3af'}}>Auto-resized to 2:1</p>
-                  </>
-                )}
-                
-                <input type="file" style={{display:'none'}} onChange={handleFileChange} accept="image/*" />
-              </label>
-            </div>
-
-            {/* Submit Button */}
-            <button type="submit" disabled={loading || uploading} className="send-btn">
-              {loading ? 'Sending...' : <>Send Notification <SendIcon /></>}
+          <div className="panel-footer">
+            <button 
+              className="launch-btn-main" 
+              onClick={handleSend}
+              disabled={loading || uploading}
+            >
+              {loading ? <Loader2 className="spinner" /> : <Send size={18} />}
+              {form.scheduledTime ? "Schedule Campaign" : "Blast Campaign"}
             </button>
-          </form>
-        </div>
+          </div>
+        </section>
 
-        {/* --- RIGHT SIDE: PHONE PREVIEW --- */ }
-        <div className="preview-section">
-            <div className="preview-title">Live Preview</div>
-            
-            {/* PHONE FRAME */}
-            <div className="phone-frame">
-                <div className="notch"></div>
+
+        {/* === RIGHT PANEL: PREVIEW ENGINE === */}
+        <section className="preview-engine">
+          <div className="platform-toggle">
+            <button 
+              className={platform === 'ios' ? 'active' : ''}
+              onClick={() => setPlatform('ios')}
+            >
+              iOS 17
+            </button>
+            <button 
+              className={platform === 'android' ? 'active' : ''}
+              onClick={() => setPlatform('android')}
+            >
+              Android 14
+            </button>
+          </div>
+
+          <div className="device-frame-container">
+            <div className={`phone-frame ${platform}`}>
+              <div className="notch"></div>
+              <div className="screen-content">
                 
-                {/* SCREEN */}
-                <div className="screen">
-                    <div className="status-bar">
-                        <span>12:30</span>
-                        <span>5G 100%</span>
-                    </div>
-
-                    {/* NOTIFICATION CARD */}
-                    <div className="notif-card">
-                        <div className="notif-header">
-                            <div className="app-info">
-                                <div className="app-icon-small">R</div>
-                                <span className="app-name">RCM AI</span>
-                                <span className="time">• Now</span>
-                            </div>
-                        </div>
-
-                        <div className="notif-content">
-                            <div className="notif-title">{title || "Notification Title"}</div>
-                            <div className="notif-body">{body || "Your message body will appear here."}</div>
-                        </div>
-
-                        {imageUrl ? (
-                             <img src={imageUrl} alt="Preview" className="notif-image" />
-                        ) : (
-                             <div className="placeholder-image">Image appears here</div>
-                        )}
-                        
-                        {imageUrl && (
-                            <div className="notif-actions">
-                                <span className="action-btn">OPEN</span>
-                                <span className="action-btn" style={{color:'#6b7280'}}>DISMISS</span>
-                            </div>
-                        )}
-                    </div>
+                {/* Status Bar */}
+                <div className="status-bar">
+                  <span>9:41</span>
+                  <div className="icons">
+                    <div className="signal"></div>
+                    <div className="wifi"></div>
+                    <div className="battery"></div>
+                  </div>
                 </div>
-            </div>
-        </div>
 
+                {/* The Notification Card */}
+                <motion.div 
+                  className={`notification-card ${platform}`}
+                  initial={{ y: -50, opacity: 0 }}
+                  animate={{ y: 0, opacity: 1 }}
+                  transition={{ type: "spring", stiffness: 300, damping: 20 }}
+                >
+                  <div className="notif-header">
+                    <div className="app-info">
+                      <div className="app-icon-mini">R</div>
+                      <span className="app-name">RCM AI</span>
+                      {platform === 'android' && <span className="dot-separator">•</span>}
+                      <span className="time-ago">now</span>
+                    </div>
+                  </div>
+
+                  <div className="notif-body-content">
+                    <div className="text-content">
+                      <h4 className={!form.title ? 'placeholder' : ''}>
+                        {form.title || "Your Headline Here"}
+                      </h4>
+                      <p className={!form.body ? 'placeholder' : ''}>
+                        {form.body || "Notification body text will appear here."}
+                      </p>
+                    </div>
+                    {form.imageUrl && platform === 'ios' && (
+                      <div className="img-thumbnail">
+                        <img src={form.imageUrl} alt="thumb" />
+                      </div>
+                    )}
+                  </div>
+
+                  {/* Big Image (Expanded View) */}
+                  {form.imageUrl && (
+                    <div className="big-image-preview">
+                       <img src={form.imageUrl} alt="banner" />
+                    </div>
+                  )}
+
+                  {/* Action Buttons */}
+                  {form.actionButtons.length > 0 && (
+                    <div className="action-buttons-preview">
+                      {form.actionButtons.map((btn, i) => (
+                        <span key={i} className="action-chip">{btn.label || 'Action'}</span>
+                      ))}
+                    </div>
+                  )}
+                </motion.div>
+
+                {/* Background Wallpaper for Realism */}
+                <div className="wallpaper-blur"></div>
+              </div>
+            </div>
+          </div>
+          
+          <div className="preview-hint">
+            <Smartphone size={14} />
+            <span>Real-time {platform === 'ios' ? 'iPhone' : 'Pixel'} Rendering</span>
+          </div>
+        </section>
       </div>
     </div>
   );
