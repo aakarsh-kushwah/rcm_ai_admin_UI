@@ -1,376 +1,377 @@
-/* =========================================
-   1. Design Token System (Scalable Theme)
-   ========================================= */
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap');
+
 :root {
-  /* Core Palette - Dark Futuristic Theme */
-  --bg-dark: #0f172a;       /* Deep slate/navy background */
-  --bg-darker: #020617;     /* Darker shade for depth */
-  --primary: #6366f1;       /* Indigo primary */
-  --accent: #a855f7;        /* Purple accent */
-  --glow: rgba(99, 102, 241, 0.5);
-  
-  /* Glassmorphism Variables */
-  --glass-bg: rgba(30, 41, 59, 0.4);
-  --glass-border: rgba(255, 255, 255, 0.1);
-  --glass-blur: 16px;
-
-  /* Typography Colors */
-  --text-main: #f8fafc;
-  --text-muted: #94a3b8;
-
-  /* Spacing & Geometry */
-  --card-radius: 16px;
-  --transition-speed: 0.3s cubic-bezier(0.4, 0, 0.2, 1); /* Professional easing */
+    --bg-deep: #030712;
+    --card-bg: rgba(17, 24, 39, 0.7);
+    --border-color: rgba(255, 255, 255, 0.08);
+    --text-primary: #f9fafb;
+    --text-secondary: #9ca3af;
+    --accent-blue: #3b82f6;
+    --glow-strength: 0.15;
 }
 
-/* =========================================
-   2. Layout & Container (Responsive)
-   ========================================= */
-.futuristic-dashboard-container {
-  min-height: 100vh;
-  width: 100%;
-  background-color: var(--bg-dark);
-  /* Mesh Gradient Background Effect */
-  background-image: 
-    radial-gradient(at 0% 0%, hsla(253,16%,7%,1) 0, transparent 50%), 
-    radial-gradient(at 50% 0%, hsla(225,39%,30%,1) 0, transparent 50%), 
-    radial-gradient(at 100% 0%, hsla(339,49%,30%,1) 0, transparent 50%);
-  padding: clamp(2rem, 5vw, 4rem); /* Fluid padding based on viewport */
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  font-family: 'Inter', system-ui, -apple-system, sans-serif;
-  box-sizing: border-box;
+/* === 1. Main Layout & Background === */
+.dashboard-wrapper {
+    min-height: 100vh;
+    width: 100%;
+    background-color: var(--bg-deep);
+    color: var(--text-primary);
+    font-family: 'Inter', sans-serif;
+    position: relative;
+    overflow-x: hidden;
+    padding: 2rem;
+    box-sizing: border-box;
 }
 
-/* =========================================
-   3. Typography (Fluid & Modern)
-   ========================================= */
-.futuristic-heading {
-  font-size: clamp(2rem, 5vw, 3.5rem); /* Scales smoothly from mobile to desktop */
-  font-weight: 800;
-  text-align: center;
-  margin-bottom: 0.5rem;
-  letter-spacing: -0.02em;
-  
-  /* Gradient Text Effect */
-  background: linear-gradient(to right, #fff, #94a3b8);
-  -webkit-background-clip: text;
-  background-clip: text;
-  color: transparent;
-  
-  animation: fadeInDown 0.8s ease-out;
+/* Ambient Background Orbs */
+.ambient-orb {
+    position: fixed;
+    border-radius: 50%;
+    filter: blur(100px);
+    z-index: 0;
+    opacity: 0.4;
+    pointer-events: none;
+}
+.orb-1 { width: 500px; height: 500px; background: #4f46e5; top: -10%; left: -10%; }
+.orb-2 { width: 600px; height: 600px; background: #ec4899; bottom: -10%; right: -10%; }
+
+.dashboard-content {
+    position: relative;
+    z-index: 1;
+    max-width: 1600px; /* Wide screen support */
+    margin: 0 auto;
 }
 
-.futuristic-subtitle {
-  font-size: clamp(1rem, 2vw, 1.25rem);
-  color: var(--text-muted);
-  text-align: center;
-  max-width: 600px;
-  margin-bottom: 4rem;
-  line-height: 1.6;
-  font-weight: 400;
-  animation: fadeIn 1s ease-out 0.2s backwards;
+/* === 2. Header Section === */
+.dashboard-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-end;
+    margin-bottom: 3rem;
+    padding-bottom: 1.5rem;
+    border-bottom: 1px solid var(--border-color);
 }
 
-/* =========================================
-   4. Grid System (The Core Layout)
-   ========================================= */
-.dashboard-grid-futuristic {
-  display: grid;
-  width: 100%;
-  max-width: 1200px;
-  /* Auto-fit magic: Creates columns automatically based on width */
-  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); 
-  gap: 2rem;
-  padding-bottom: 2rem;
+.dashboard-header h1 {
+    font-size: 2.5rem;
+    font-weight: 700;
+    margin: 0;
+    background: linear-gradient(to right, #fff, #94a3b8);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    letter-spacing: -1px;
 }
 
-/* =========================================
-   5. Card Component (The "Google/Meta" Feel)
-   ========================================= */
-.dashboard-card-futuristic {
-  position: relative;
-  display: flex;
-  flex-direction: column;
-  align-items: flex-start;
-  padding: 2rem;
-  text-decoration: none;
-  border-radius: var(--card-radius);
-  
-  /* Glassmorphism Styles */
-  background: var(--glass-bg);
-  backdrop-filter: blur(var(--glass-blur));
-  -webkit-backdrop-filter: blur(var(--glass-blur));
-  border: 1px solid var(--glass-border);
-  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
-  
-  transition: all var(--transition-speed);
-  overflow: hidden; /* Keeps effects inside */
-  isolation: isolate; /* Creates a new stacking context */
-}
-
-/* 5.1 Card Hover Effects */
-.dashboard-card-futuristic:hover {
-  transform: translateY(-5px); /* Professional lift */
-  background: rgba(30, 41, 59, 0.6);
-  border-color: rgba(99, 102, 241, 0.3);
-  box-shadow: 
-    0 20px 25px -5px rgba(0, 0, 0, 0.3), 
-    0 10px 10px -5px rgba(0, 0, 0, 0.2),
-    0 0 20px var(--glow); /* Glow effect */
-}
-
-.dashboard-card-futuristic:active {
-  transform: scale(0.98); /* Tactile click feedback */
-}
-
-/* 5.2 Card Icon */
-.card-icon-futuristic {
-  font-size: 2.5rem;
-  margin-bottom: 1.5rem;
-  background: rgba(255, 255, 255, 0.05);
-  width: 60px;
-  height: 60px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  border-radius: 12px;
-  transition: transform var(--transition-speed);
-}
-
-.dashboard-card-futuristic:hover .card-icon-futuristic {
-  transform: scale(1.1) rotate(5deg); /* Subtle playfulness */
-  background: rgba(255, 255, 255, 0.1);
-}
-
-/* 5.3 Card Title */
-.card-title-futuristic {
-  font-size: 1.25rem;
-  font-weight: 600;
-  color: var(--text-main);
-  margin: 0;
-  margin-bottom: 0.5rem;
-}
-
-/* 5.4 Arrow Interaction */
-.arrow-icon-futuristic {
-  margin-top: auto; /* Pushes arrow to bottom if content varies */
-  align-self: flex-end;
-  color: var(--primary);
-  font-size: 1.5rem;
-  opacity: 0.6;
-  transform: translateX(0);
-  transition: all var(--transition-speed);
-}
-
-.dashboard-card-futuristic:hover .arrow-icon-futuristic {
-  opacity: 1;
-  transform: translateX(5px); /* Directional cue */
-  color: var(--accent);
-}
-
-/* =========================================
-   6. Accessibility & Animations
-   ========================================= */
-/* Keyboard Focus State */
-.dashboard-card-futuristic:focus-visible {
-  outline: 2px solid var(--primary);
-  outline-offset: 4px;
-}
-
-/* Entrance Animations */
-@keyframes fadeInDown {
-  from {
-    opacity: 0;
-    transform: translateY(-20px);
-  }
-  to {
-    opacity: 1;
-    transform: translateY(0);
-  }
-}
-
-@keyframes fadeIn {
-  from { opacity: 0; }
-  to { opacity: 1; }
-}
-
-/* =========================================
-   7. Mobile/Responsive Best Practices
-   ========================================= */
-@media (max-width: 768px) {
-  .futuristic-dashboard-container {
-    padding: 1.5rem;
-  }
-  
-  .dashboard-grid-futuristic {
-    gap: 1rem;
-    grid-template-columns: 1fr; /* Force single column on mobile */
-  }
-
-  .dashboard-card-futuristic {
-    flex-direction: row; /* Horizontal layout for mobile cards saves vertical space */
-    align-items: center;
-    padding: 1.25rem;
-  }
-
-  .card-icon-futuristic {
-    margin-bottom: 0;
-    margin-right: 1rem;
-    font-size: 1.8rem;
-    width: 48px;
-    height: 48px;
-  }
-
-  .card-title-futuristic {
+.dashboard-header p {
+    color: var(--text-secondary);
+    margin-top: 0.5rem;
     font-size: 1.1rem;
-    margin-bottom: 0;
-  }
-
-  .arrow-icon-futuristic {
-    margin-left: auto; /* Pushes arrow to far right */
-    margin-top: 0;
-  }
 }
 
-/* ... (Keep the :root variables from previous code) ... */
-
-/* =========================================
-   RE-OPTIMIZED CONTAINER
-   ========================================= */
-.futuristic-dashboard-container {
-  min-height: 100vh;
-  width: 100%;
-  background: var(--bg-darker); /* Pure dark for mobile OLED screens */
-  background-image: 
-    radial-gradient(circle at 0% 0%, rgba(99, 102, 241, 0.15) 0%, transparent 40%),
-    radial-gradient(circle at 100% 100%, rgba(168, 85, 247, 0.1) 0%, transparent 40%);
-  
-  /* Responsive Padding */
-  padding: 2rem 1.5rem; 
-  display: flex;
-  flex-direction: column;
-  box-sizing: border-box;
-}
-
-/* =========================================
-   MOBILE-FIRST HEADINGS
-   ========================================= */
-.futuristic-heading {
-  font-size: 1.8rem; /* Mobile default */
-  font-weight: 800;
-  text-align: left; /* Alignment change for professional look */
-  margin-bottom: 0.5rem;
-  background: linear-gradient(135deg, #fff 0%, #94a3b8 100%);
-  -webkit-background-clip: text;
-  background-clip: text;
-  color: transparent;
-}
-
-.futuristic-subtitle {
-  font-size: 0.95rem;
-  color: var(--text-muted);
-  text-align: left;
-  margin-bottom: 2.5rem;
-  line-height: 1.5;
-}
-
-/* =========================================
-   DYNAMIC GRID SYSTEM
-   ========================================= */
-.dashboard-grid-futuristic {
-  display: grid;
-  width: 100%;
-  grid-template-columns: 1fr; /* Single column for mobile */
-  gap: 1rem;
-}
-
-/* =========================================
-   PROFESSIONAL MOBILE CARDS
-   ========================================= */
-.dashboard-card-futuristic {
-  display: flex;
-  align-items: center; /* Side-by-side layout for mobile */
-  padding: 1.25rem;
-  background: rgba(255, 255, 255, 0.03);
-  border: 1px solid rgba(255, 255, 255, 0.08);
-  border-radius: 18px;
-  text-decoration: none;
-  transition: all 0.2s ease;
-  
-  /* Glass effect for premium feel */
-  backdrop-filter: blur(10px);
-  -webkit-backdrop-filter: blur(10px);
-}
-
-.card-icon-futuristic {
-  font-size: 1.5rem;
-  width: 50px;
-  height: 50px;
-  background: linear-gradient(135deg, rgba(99, 102, 241, 0.2), rgba(168, 85, 247, 0.1));
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  border-radius: 14px;
-  margin-right: 1.25rem;
-}
-
-.card-title-futuristic {
-  font-size: 1.05rem;
-  font-weight: 600;
-  color: #fff;
-  flex-grow: 1; /* Title takes middle space */
-}
-
-.arrow-icon-futuristic {
-  color: var(--text-muted);
-  font-size: 1.2rem;
-  opacity: 0.5;
-}
-
-/* =========================================
-   DESKTOP UPGRADE (Scaling Up)
-   ========================================= */
-@media (min-width: 768px) {
-  .futuristic-dashboard-container {
-    padding: 4rem 2rem;
+.system-status {
+    display: flex;
     align-items: center;
-  }
+    gap: 8px;
+    background: rgba(16, 185, 129, 0.1);
+    color: #34d399;
+    padding: 8px 16px;
+    border-radius: 100px;
+    font-size: 0.9rem;
+    font-weight: 600;
+    border: 1px solid rgba(16, 185, 129, 0.2);
+}
+.pulse-dot {
+    width: 8px; height: 8px;
+    background: #34d399;
+    border-radius: 50%;
+    box-shadow: 0 0 10px #34d399;
+    animation: pulse 2s infinite;
+}
 
-  .futuristic-heading {
-    font-size: 3.5rem;
-    text-align: center;
-  }
-
-  .futuristic-subtitle {
-    text-align: center;
-    font-size: 1.2rem;
-  }
-
-  .dashboard-grid-futuristic {
-    grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+/* === 3. Bento Grid Layout (The Advanced Part) === */
+.bento-grid {
+    display: grid;
+    /* Smart layout: Creates columns automatically, min 350px width */
+    grid-template-columns: repeat(auto-fit, minmax(340px, 1fr)); 
     gap: 1.5rem;
-    max-width: 1200px;
-  }
+}
 
-  .dashboard-card-futuristic {
-    flex-direction: column; /* Back to vertical for desktop */
+/* === 4. Professional Card Design === */
+.bento-card {
+    position: relative;
+    background: var(--card-bg);
+    border: 1px solid var(--border-color);
+    border-radius: 24px; /* Highly rounded corners like iOS */
+    padding: 2rem; /* Large padding for "Big Card" feel */
+    text-decoration: none;
+    color: inherit;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+    min-height: 280px; /* Taller cards */
+    transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+    overflow: hidden;
+    backdrop-filter: blur(20px);
+}
+
+/* Hover Effects */
+.bento-card:hover {
+    transform: translateY(-5px) scale(1.02);
+    border-color: rgba(255, 255, 255, 0.2);
+    box-shadow: 0 20px 40px -10px rgba(0, 0, 0, 0.5);
+}
+
+/* Card Internal Layout */
+.card-header {
+    display: flex;
+    justify-content: space-between;
     align-items: flex-start;
-    padding: 2.5rem;
-  }
-
-  .card-icon-futuristic {
     margin-bottom: 1.5rem;
-    margin-right: 0;
-    width: 65px;
-    height: 65px;
-    font-size: 2rem;
-  }
 }
 
-/* Professional Touch: Tap Effect for Mobile */
-.dashboard-card-futuristic:active {
-  transform: scale(0.96);
-  background: rgba(255, 255, 255, 0.08);
+.icon-box {
+    width: 60px; height: 60px;
+    border-radius: 16px;
+    display: flex; align-items: center; justify-content: center;
+    background: rgba(255, 255, 255, 0.05);
+    border: 1px solid rgba(255, 255, 255, 0.05);
+    transition: 0.3s;
 }
+
+.bento-card:hover .icon-box {
+    background: rgba(255, 255, 255, 0.1);
+    transform: scale(1.1);
+}
+
+.arrow-box {
+    color: var(--text-secondary);
+    opacity: 0;
+    transform: translate(-10px, 10px);
+    transition: 0.4s ease;
+}
+
+.bento-card:hover .arrow-box {
+    opacity: 1;
+    transform: translate(0, 0);
+    color: white;
+}
+
+.card-body h3 {
+    font-size: 1.5rem;
+    font-weight: 600;
+    margin: 0 0 0.5rem 0;
+}
+
+.card-body p {
+    font-size: 0.95rem;
+    color: var(--text-secondary);
+    line-height: 1.5;
+    margin: 0;
+}
+
+.card-footer {
+    margin-top: 2rem;
+    padding-top: 1.5rem;
+    border-top: 1px solid rgba(255, 255, 255, 0.05);
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.stat-badge {
+    display: flex; align-items: center; gap: 6px;
+    font-size: 0.85rem; font-weight: 500;
+    color: var(--text-secondary);
+    background: rgba(255, 255, 255, 0.03);
+    padding: 6px 12px;
+    border-radius: 100px;
+}
+
+.action-text {
+    font-size: 0.9rem;
+    font-weight: 600;
+    display: flex; align-items: center; gap: 4px;
+    opacity: 0;
+    transition: 0.3s;
+}
+
+.bento-card:hover .action-text {
+    opacity: 1;
+}
+
+/* === 5. Theme Colors (Glow Effects) === */
+.bento-card::before {
+    content: '';
+    position: absolute;
+    top: 0; left: 0; right: 0; bottom: 0;
+    background: radial-gradient(800px circle at var(--mouse-x) var(--mouse-y), rgba(255,255,255,0.06), transparent 40%);
+    z-index: 0;
+    opacity: 0;
+    transition: opacity 0.5s;
+}
+.bento-card:hover::before { opacity: 1; }
+
+/* Color Themes */
+.blue-theme .icon-box { color: #60a5fa; }
+.blue-theme:hover { box-shadow: 0 0 30px rgba(59, 130, 246, var(--glow-strength)); }
+
+.purple-theme .icon-box { color: #c084fc; }
+.purple-theme:hover { box-shadow: 0 0 30px rgba(168, 85, 247, var(--glow-strength)); }
+
+.gold-theme .icon-box { color: #fbbf24; }
+.gold-theme:hover { box-shadow: 0 0 30px rgba(245, 158, 11, var(--glow-strength)); }
+
+.red-theme .icon-box { color: #f87171; }
+.red-theme:hover { box-shadow: 0 0 30px rgba(239, 68, 68, var(--glow-strength)); }
+
+.orange-theme .icon-box { color: #fb923c; }
+.orange-theme:hover { box-shadow: 0 0 30px rgba(249, 115, 22, var(--glow-strength)); }
+
+.green-theme .icon-box { color: #4ade80; }
+.green-theme:hover { box-shadow: 0 0 30px rgba(34, 197, 94, var(--glow-strength)); }
+
+.cyan-theme .icon-box { color: #22d3ee; }
+.cyan-theme:hover { box-shadow: 0 0 30px rgba(6, 182, 212, var(--glow-strength)); }
+
+/* === 6. Animations === */
+@keyframes pulse {
+    0% { transform: scale(1); opacity: 1; }
+    50% { transform: scale(1.5); opacity: 0.5; }
+    100% { transform: scale(1); opacity: 1; }
+}
+
+/* === 7. Mobile Responsiveness (Crucial Update) === */
+@media (max-width: 768px) {
+    .dashboard-wrapper {
+        padding: 1rem; /* Less padding on mobile */
+    }
+
+    .dashboard-header {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 1rem;
+    }
+
+    .bento-grid {
+        grid-template-columns: 1fr; /* 1 Column on mobile */
+        gap: 1rem;
+    }
+
+    .bento-card {
+        min-height: auto; /* Allow auto height based on content */
+        padding: 1.5rem; /* Slightly smaller padding */
+    }
+    
+    .bento-card:active {
+        transform: scale(0.98); /* Touch feedback */
+    }
+
+    .action-text {
+        opacity: 1; /* Always show action text on mobile */
+        color: var(--accent-blue);
+    }
+}
+
+/* === CRITICAL SECURITY ALERT === */
+.dashboard-alert-container.critical-alert {
+    width: 100%;
+    /* Deep Blood Red Background */
+    background: linear-gradient(90deg, #2a0000 0%, #450a0a 50%, #2a0000 100%);
+    border: 2px solid #ff0000; /* Bright Red Border */
+    color: #ffffff;
+    
+    /* Height aur Font Bada Rakha Hai */
+    height: 70px; 
+    
+    display: flex;
+    align-items: center;
+    overflow: hidden;
+    margin-bottom: 2rem;
+    border-radius: 12px;
+    position: relative;
+    
+    /* Glowing Effect */
+    box-shadow: 0 0 30px rgba(255, 0, 0, 0.4);
+    backdrop-filter: blur(10px);
+}
+
+.alert-track {
+    display: flex;
+    white-space: nowrap;
+    animation: dashboardMarquee 45s linear infinite; /* Slow speed for reading */
+    padding-left: 100%;
+    align-items: center;
+}
+
+.alert-msg {
+    display: flex;
+    align-items: center;
+    gap: 15px;
+    font-size: 1.2rem; /* Bada Font */
+    font-weight: 500;
+}
+
+/* "Scary Text" Highlight */
+.scary-text {
+    color: #ff3333;
+    font-weight: 800;
+    text-transform: uppercase;
+    font-size: 1.3rem;
+    text-shadow: 0 0 10px rgba(255, 0, 0, 0.8);
+    animation: pulseText 2s infinite;
+}
+
+.alert-msg strong {
+    color: #ffcccc; /* Light Red */
+    font-weight: 700;
+    text-decoration: underline;
+    text-underline-offset: 4px;
+}
+
+.divider {
+    margin: 0 60px;
+    color: #ff0000;
+    font-size: 1.5rem;
+    font-weight: 900;
+    opacity: 0.8;
+}
+
+/* Skull Icon Animation */
+.blink-skull {
+    color: #ff0000;
+    filter: drop-shadow(0 0 8px #ff0000);
+    animation: shakeAndBlink 3s infinite;
+}
+
+/* === ANIMATIONS === */
+@keyframes dashboardMarquee {
+    0% { transform: translateX(0); }
+    100% { transform: translateX(-100%); }
+}
+
+@keyframes pulseText {
+    0%, 100% { opacity: 1; }
+    50% { opacity: 0.8; text-shadow: 0 0 20px red; }
+}
+
+@keyframes shakeAndBlink {
+    0%, 100% { transform: rotate(0deg); opacity: 1; }
+    25% { transform: rotate(-10deg); }
+    50% { opacity: 0.5; }
+    75% { transform: rotate(10deg); }
+}
+
+/* === MOBILE ADJUSTMENT === */
+@media (max-width: 768px) {
+    .dashboard-alert-container.critical-alert {
+        height: 60px;
+        font-size: 0.9rem;
+    }
+    .alert-msg {
+        font-size: 1rem;
+    }
+    .scary-text {
+        font-size: 1.1rem;
+    }
+}
+
