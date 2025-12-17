@@ -1,186 +1,251 @@
-/* ==================================== */
-/* 1. Global Futuristic Theme & Layout */
-/* ==================================== */
-.futuristic-container {
-    font-family: 'Consolas', 'Lucida Console', monospace; /* Techy font */
-    max-width: 1200px;
-    margin: 0 auto;
-    padding: 25px;
-    background-color: #1a1a2e; /* Deep Dark Blue/Purple Background */
-    color: #e0f7fa; /* Light Cyan/White text */
-    min-height: 80vh;
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600&display=swap');
+
+:root {
+  --bg-dark: #0f172a;
+  --glass-panel: rgba(30, 41, 59, 0.6);
+  --glass-border: rgba(255, 255, 255, 0.1);
+  --primary-cyan: #06b6d4;
+  --text-main: #f8fafc;
+  --text-muted: #94a3b8;
+  --danger: #ef4444;
 }
 
-.futuristic-header {
-    font-size: 2.5rem;
-    font-weight: 700;
-    color: #00bcd4; /* Bright Cyan Accent */
-    margin-bottom: 1rem;
-    border-bottom: 2px solid #00bcd4;
-    padding-bottom: 10px;
-    letter-spacing: 1.5px;
+/* === LAYOUT & BACKGROUND === */
+.admin-page-container {
+  min-height: 100vh;
+  background-color: var(--bg-dark);
+  font-family: 'Inter', sans-serif;
+  color: var(--text-main);
+  padding: 2rem;
+  position: relative;
+  overflow: hidden;
+  display: flex;
+  justify-content: center;
 }
 
-.admin-count-badge {
-    background-color: #00bcd4;
-    color: #1a1a2e;
-    padding: 5px 10px;
-    border-radius: 4px;
-    font-size: 1.2rem;
-    font-weight: 600;
-    margin-left: 10px;
+.glow-spot {
+  position: absolute;
+  width: 400px;
+  height: 400px;
+  background: radial-gradient(circle, rgba(6,182,212,0.15) 0%, rgba(0,0,0,0) 70%);
+  border-radius: 50%;
+  pointer-events: none;
+  z-index: 0;
+}
+.top-left { top: -100px; left: -100px; }
+.bottom-right { bottom: -100px; right: -100px; }
+
+/* === GLASS DASHBOARD CONTAINER === */
+.admin-dashboard-glass {
+  width: 100%;
+  max-width: 1100px;
+  background: var(--glass-panel);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+  border: 1px solid var(--glass-border);
+  border-radius: 20px;
+  box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5);
+  display: flex;
+  flex-direction: column;
+  z-index: 1;
+  overflow: hidden;
 }
 
-.futuristic-subtext {
-    color: #a0aec0; /* Light Gray Subtext */
-    margin-bottom: 30px;
-    font-size: 1rem;
+/* === HEADER === */
+.dashboard-header {
+  padding: 1.5rem 2rem;
+  border-bottom: 1px solid var(--glass-border);
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 1rem;
 }
 
-/* --- Loading and Error Styles (Futuristic) --- */
-.loading-state {
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    flex-direction: column;
-    height: 300px;
+.header-title { display: flex; align-items: center; gap: 12px; }
+.icon-box {
+  background: rgba(6, 182, 212, 0.1);
+  padding: 10px;
+  border-radius: 12px;
+  display: flex;
+}
+.header-title h1 { font-size: 1.25rem; font-weight: 600; margin: 0; }
+.header-title p { font-size: 0.85rem; color: var(--text-muted); margin: 0; }
+
+.header-actions { display: flex; gap: 10px; flex: 1; justify-content: flex-end; }
+
+/* SEARCH BAR */
+.search-bar {
+  position: relative;
+  max-width: 300px;
+  width: 100%;
+}
+.search-icon { position: absolute; left: 12px; top: 10px; color: var(--text-muted); }
+.search-bar input {
+  width: 100%;
+  background: rgba(0, 0, 0, 0.2);
+  border: 1px solid var(--glass-border);
+  padding: 10px 10px 10px 40px;
+  border-radius: 8px;
+  color: white;
+  outline: none;
+  transition: all 0.2s;
+}
+.search-bar input:focus { border-color: var(--primary-cyan); box-shadow: 0 0 0 3px rgba(6, 182, 212, 0.1); }
+
+.refresh-btn {
+  background: rgba(255,255,255,0.05);
+  border: 1px solid var(--glass-border);
+  color: var(--text-main);
+  padding: 8px 12px;
+  border-radius: 8px;
+  cursor: pointer;
+  transition: 0.2s;
+}
+.refresh-btn:hover { background: rgba(255,255,255,0.1); }
+.spin { animation: spin 1s linear infinite; }
+
+/* === DATA GRID (THE TABLE REPLACEMENT) === */
+.data-grid-container {
+  padding: 0;
+  overflow-y: auto;
+  flex: 1;
 }
 
-.spinner-futuristic {
-    border: 4px solid rgba(255, 255, 255, 0.1);
-    border-top: 4px solid #00bcd4; /* Cyan Spinner */
-    border-radius: 50%;
-    width: 50px;
-    height: 50px;
-    animation: spin-futuristic 1s linear infinite;
-    box-shadow: 0 0 10px #00bcd4;
+/* Grid Definitions */
+.grid-header, .grid-row {
+  display: grid;
+  grid-template-columns: 2fr 1.5fr 1fr 1fr 50px; /* Desktop Columns */
+  padding: 1rem 2rem;
+  align-items: center;
+  gap: 1rem;
 }
 
-.loading-text-futuristic {
-    margin-top: 20px;
-    color: #00bcd4;
-    letter-spacing: 2px;
+.grid-header {
+  background: rgba(0,0,0,0.2);
+  font-size: 0.8rem;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: var(--text-muted);
+  font-weight: 600;
 }
 
-@keyframes spin-futuristic {
-    0% { transform: rotate(0deg); }
-    100% { transform: rotate(360deg); }
+.grid-row {
+  border-bottom: 1px solid var(--glass-border);
+  transition: background 0.2s;
+}
+.grid-row:hover { background: rgba(255,255,255,0.02); }
+
+/* Column Specifics */
+.col-user { display: flex; align-items: center; gap: 12px; }
+.avatar {
+  width: 40px; height: 40px;
+  background: linear-gradient(135deg, var(--primary-cyan), #3b82f6);
+  border-radius: 50%;
+  display: flex; align-items: center; justify-content: center;
+  font-weight: 700; font-size: 0.9rem;
+  box-shadow: 0 4px 10px rgba(6, 182, 212, 0.3);
+}
+.user-info { display: flex; flex-direction: column; }
+.fullname { font-weight: 500; font-size: 0.95rem; }
+.user-id { font-size: 0.75rem; color: var(--text-muted); }
+
+.col-email { color: var(--text-muted); font-size: 0.9rem; }
+.col-date { font-size: 0.9rem; color: var(--text-muted); }
+
+/* Badges */
+.badge {
+  padding: 4px 10px;
+  border-radius: 20px;
+  font-size: 0.75rem;
+  font-weight: 600;
+}
+.badge-blue { background: rgba(59, 130, 246, 0.2); color: #60a5fa; border: 1px solid rgba(59, 130, 246, 0.3); }
+.badge-gray { background: rgba(255,255,255,0.1); color: var(--text-muted); }
+
+.icon-btn {
+  background: transparent; border: none; color: var(--text-muted);
+  cursor: pointer; padding: 5px; border-radius: 50%;
+  transition: 0.2s;
+}
+.icon-btn:hover { background: rgba(255,255,255,0.1); color: white; }
+
+/* === SKELETON & EMPTY STATES === */
+.skeleton-row { height: 70px; animation: pulse 1.5s infinite; background: rgba(255,255,255,0.02); }
+.empty-state { text-align: center; padding: 4rem; color: var(--text-muted); display: flex; flex-direction: column; align-items: center; gap: 1rem; }
+.error-banner { background: rgba(239, 68, 68, 0.1); color: #fca5a5; padding: 1rem; margin: 1rem; border-radius: 8px; display: flex; align-items: center; gap: 10px; border: 1px solid rgba(239, 68, 68, 0.2); }
+
+/* === FOOTER === */
+.dashboard-footer {
+  padding: 1rem 2rem;
+  background: rgba(0,0,0,0.2);
+  border-top: 1px solid var(--glass-border);
+  display: flex; justify-content: space-between;
+  font-size: 0.8rem; color: var(--text-muted);
+}
+.status-dot::before {
+  content: ''; display: inline-block; width: 6px; height: 6px;
+  background: #10b981; border-radius: 50%; margin-right: 6px;
+  box-shadow: 0 0 8px #10b981;
 }
 
-.error-alert-futuristic {
-    background-color: #4a1d1d; /* Dark Red Background */
-    border: 1px solid #ff5252; /* Bright Red Border */
-    color: #ff5252;
-    padding: 15px;
-    border-radius: 6px;
-    margin: 20px 0;
-    font-weight: 600;
-    text-align: center;
-}
+/* === KEYFRAMES === */
+@keyframes spin { 100% { transform: rotate(360deg); } }
+@keyframes pulse { 0% { opacity: 0.6; } 50% { opacity: 0.3; } 100% { opacity: 0.6; } }
 
-/* ==================================== */
-/* 2. Futuristic Table Styling */
-/* ==================================== */
-.table-wrapper-futuristic {
-    background-color: #24243e; /* Slightly lighter dark background for table container */
-    border-radius: 10px;
-    overflow-x: auto;
-    box-shadow: 0 0 20px rgba(0, 188, 212, 0.2); /* Soft Cyan Glow */
-}
-
-.admin-table-futuristic {
-    min-width: 100%;
-    border-collapse: collapse;
-}
-
-.table-header-futuristic {
-    padding: 15px;
-    text-align: left;
-    font-size: 0.9rem;
-    font-weight: 600;
-    color: #81e6d9; /* Mint Green/Cyan Header Text */
-    text-transform: uppercase;
-    background-color: #313155; /* Darker header strip */
-    border-bottom: 1px solid #00bcd4; /* Cyan divider */
-}
-
-.table-data-futuristic {
-    padding: 12px 15px;
-    white-space: nowrap;
-    font-size: 0.95rem;
-    color: #e0f7fa;
-    border-bottom: 1px solid rgba(0, 188, 212, 0.1); /* Very subtle divider */
-}
-
-.table-row-futuristic:hover {
-    background-color: #313155; /* Accent hover effect */
-    transition: background-color 0.3s ease-in-out;
-}
-
-.no-admins-message-futuristic {
-    text-align: center;
-    padding: 20px;
-    font-size: 1rem;
-    color: #a0aec0;
-}
-
-/* Highlighted data text */
-.email-col .table-data-futuristic {
-    color: #4dd0e1; /* Brighter Cyan for email */
-}
-.name-col .table-data-futuristic {
-    font-weight: 500;
-}
-
-
-/* ==================================== */
-/* 3. Responsive Design (Media Queries) */
-/* ==================================== */
-
-/* Tablet and smaller (max-width: 768px) */
+/* === MOBILE RESPONSIVENESS (THE MAGIC) === */
 @media (max-width: 768px) {
-    .futuristic-container {
-        padding: 15px;
-    }
-    
-    .futuristic-header {
-        font-size: 2rem;
-    }
+  .admin-page-container { padding: 10px; }
+  
+  .dashboard-header { flex-direction: column; align-items: stretch; text-align: center; gap: 1.5rem; }
+  .header-actions { flex-direction: row; }
+  .search-bar { max-width: 100%; flex: 1; }
 
-    /* Hide RCM ID and Created At columns */
-    .rcm-col, .created-at-col {
-        display: none;
-    }
+  /* HIDE HEADER ROW */
+  .grid-header { display: none; }
 
-    .admin-table-futuristic thead th:nth-child(4), /* RCM ID Header */
-    .admin-table-futuristic thead th:nth-child(5) { /* Created At Header */
-        display: none;
-    }
-    
-    .table-data-futuristic, .table-header-futuristic {
-        padding: 10px 12px;
-        font-size: 0.85rem;
-    }
+  /* CONVERT ROWS TO CARDS */
+  .grid-row {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 12px;
+    background: rgba(255,255,255,0.03);
+    margin: 1rem;
+    padding: 1.5rem;
+    border-radius: 12px;
+    border: 1px solid var(--glass-border);
+    position: relative;
+  }
+
+  .col-user { width: 100%; border-bottom: 1px solid var(--glass-border); padding-bottom: 12px; margin-bottom: 5px; }
+  
+  .col-action { 
+    position: absolute; 
+    top: 1.5rem; 
+    right: 1.5rem; 
+  }
+
+  .col-email, .col-rcm, .col-date {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    width: 100%;
+    font-size: 0.95rem;
+  }
+
+  /* Add Labels via CSS for mobile context */
+  .col-rcm::before, .col-date::before {
+    content: attr(data-label);
+    color: var(--text-muted);
+    font-size: 0.8rem;
+    text-transform: uppercase;
+    width: 80px;
+  }
+
+  .mobile-icon { display: block; color: var(--primary-cyan); }
 }
 
-/* Mobile screens (max-width: 480px) */
-@media (max-width: 480px) {
-    .futuristic-header {
-        font-size: 1.5rem;
-        margin-bottom: 10px;
-    }
-    
-    .admin-count-badge {
-        font-size: 1rem;
-        padding: 4px 8px;
-    }
-
-    /* Hide ID column on smallest screens */
-    .id-col {
-        display: none;
-    }
-    
-    .admin-table-futuristic thead th:nth-child(1) { /* ID Header */
-        display: none;
-    }
+@media (min-width: 769px) {
+  .mobile-icon { display: none; }
 }
