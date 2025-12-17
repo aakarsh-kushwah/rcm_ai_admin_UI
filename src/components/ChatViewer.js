@@ -1,102 +1,174 @@
-import React, { useState, useEffect } from 'react';
-// Assuming you have ChatViewer.css for styling
+import React, { useState, useEffect, useRef } from 'react';
+import axios from 'axios';
 
-function ChatViewer() {
-    const [chats, setChats] = useState({});
-    const [selectedSession, setSelectedSession] = useState(null);
-    const [loading, setLoading] = useState(true);
-    const [error, setError] = useState('');
+// --- CSS STYLES (Inline for simplicity) ---
+const styles = {
+  container: { display: 'flex', height: 'calc(100vh - 80px)', border: '1px solid #e5e7eb', backgroundColor: '#fff' },
+  sidebar: { width: '300px', borderRight: '1px solid #e5e7eb', display: 'flex', flexDirection: 'column', backgroundColor: '#f9fafb' },
+  sidebarHeader: { padding: '15px', borderBottom: '1px solid #e5e7eb', fontWeight: 'bold', backgroundColor: '#fff' },
+  userList: { overflowY: 'auto', flex: 1 },
+  userItem: { padding: '15px', borderBottom: '1px solid #f3f4f6', cursor: 'pointer', transition: 'background 0.2s' },
+  activeUser: { backgroundColor: '#e0e7ff', borderLeft: '4px solid #3730a3' },
+  chatArea: { flex: 1, display: 'flex', flexDirection: 'column', backgroundColor: '#fff' },
+  chatHeader: { padding: '15px', borderBottom: '1px solid #e5e7eb', display: 'flex', justifyContent: 'space-between', alignItems: 'center', backgroundColor: '#fff', fontWeight: 'bold' },
+  messagesBox: { flex: 1, overflowY: 'auto', padding: '20px', display: 'flex', flexDirection: 'column', gap: '10px' },
+  messageBubble: { maxWidth: '70%', padding: '10px 15px', borderRadius: '12px', fontSize: '14px', lineHeight: '1.4' },
+  sent: { alignSelf: 'flex-end', backgroundColor: '#2563eb', color: 'white', borderBottomRightRadius: '2px' },
+  received: { alignSelf: 'flex-start', backgroundColor: '#f3f4f6', color: '#1f2937', borderBottomLeftRadius: '2px' },
+  timestamp: { fontSize: '10px', marginTop: '4px', opacity: 0.8, textAlign: 'right' },
+  loadMoreBtn: { margin: '0 auto 15px auto', padding: '5px 15px', fontSize: '12px', backgroundColor: '#e5e7eb', border: 'none', borderRadius: '20px', cursor: 'pointer' }
+};
 
-    useEffect(() => {
-        const fetchChats = async () => {
-            setLoading(true);
-            setError('');
-            
-            const token = localStorage.getItem('token');
-            if (!token) {
-                 setError('Authentication token missing. Please log in.');
-                 setLoading(false);
-                 return;
-            }
+const ChatViewer = () => {
+  const [users, setUsers] = useState([]);
+  const [selectedUser, setSelectedUser] = useState(null);
+  const [messages, setMessages] = useState([]);
+  const [loadingUsers, setLoadingUsers] = useState(true);
+  const [loadingChat, setLoadingChat] = useState(false);
+  const [page, setPage] = useState(1);
+  const [hasMore, setHasMore] = useState(false);
+  
+  const messagesEndRef = useRef(null);
+  const API_URL = process.env.REACT_APP_API_URL;
 
-            try {
-                // Fetch all chat messages, grouped by user email from the backend
-                const apiUrl = `${process.env.REACT_APP_API_URL}/api/chat/admin/chats`;
-                const response = await fetch(apiUrl, {
-                    headers: { 'Authorization': `Bearer ${token}` }
-                });
-                
-                if (response.status === 401 || response.status === 403) {
-                     // This handles the authentication loop error.
-                     throw new Error('Unauthorized access. Check Admin permissions.');
-                }
-                if (!response.ok) {
-                     const errorData = await response.json();
-                     throw new Error(errorData.message || 'Failed to fetch data.');
-                }
-                
-                const result = await response.json();
-                
-                if (result.success) {
-                    setChats(result.data);
-                } else {
-                    setError(result.message || 'Could not fetch chat sessions.');
-                }
-            } catch (err) {
-                console.error("Failed to fetch chats", err);
-                setError(err.message);
-            } finally {
-                setLoading(false);
-            }
-        };
-        fetchChats();
-    }, []);
+  // 1. Fetch Users on Mount
+  useEffect(() => {
+    fetchUsers();
+  }, []);
 
-    if (loading) return <p>Loading chat sessions...</p>;
-    if (error) return <p style={{color: 'red'}}>Error: {error}</p>;
+  // 2. Fetch Messages when User Selects or Page Changes
+  useEffect(() => {
+    if (selectedUser) {
+      fetchMessages(selectedUser.id, page);
+    }
+  }, [selectedUser, page]);
 
-    const chatSessions = Object.keys(chats);
+  // Scroll to bottom only on FIRST load of a user
+  useEffect(() => {
+    if (page === 1 && messagesEndRef.current) {
+      messagesEndRef.current.scrollIntoView({ behavior: 'smooth' });
+    }
+  }, [messages, selectedUser]);
 
-    return (
-        <div style={{ display: 'flex', height: 'calc(100vh - 70px)', border: '1px solid #ddd' }}>
-            <div style={{ width: '30%', borderRight: '1px solid #ccc', overflowY: 'auto', backgroundColor: '#f9f9f9' }}>
-                <h2 style={{ padding: '10px', margin: 0, borderBottom: '1px solid #ccc', backgroundColor: '#eee' }}>User Sessions</h2>
-                <ul style={{ listStyle: 'none', padding: 0, margin: 0 }}>
-                    {chatSessions.length > 0 ? chatSessions.map(email => (
-                        <li key={email} onClick={() => setSelectedSession(email)} 
-                            style={{ padding: '15px', cursor: 'pointer', borderBottom: '1px solid #eee', 
-                                    backgroundColor: selectedSession === email ? '#e0eaff' : 'transparent' }}>
-                            {email}
-                        </li>
-                    )) : <li>No chat sessions found.</li>}
-                </ul>
+  const fetchUsers = async () => {
+    try {
+      const token = localStorage.getItem('token');
+      const res = await axios.get(`${API_URL}/api/chat/all`, {
+        headers: { Authorization: `Bearer ${token}` }
+      });
+      if (res.data.success) {
+        setUsers(res.data.data);
+      }
+    } catch (err) {
+      console.error("Failed to load users", err);
+    } finally {
+      setLoadingUsers(false);
+    }
+  };
+
+  const fetchMessages = async (userId, pageNum) => {
+    setLoadingChat(true);
+    try {
+      const token = localStorage.getItem('token');
+      const res = await axios.get(`${API_URL}/api/chat/history/${userId}?page=${pageNum}`, {
+        headers: { Authorization: `Bearer ${token}` }
+      });
+      
+      if (res.data.success) {
+        if (pageNum === 1) {
+          setMessages(res.data.data);
+        } else {
+          // Prepend older messages
+          setMessages(prev => [...res.data.data, ...prev]);
+        }
+        setHasMore(res.data.pagination.hasMore);
+      }
+    } catch (err) {
+      console.error("Failed to load chat", err);
+    } finally {
+      setLoadingChat(false);
+    }
+  };
+
+  const handleUserSelect = (user) => {
+    if (selectedUser?.id !== user.id) {
+      setSelectedUser(user);
+      setMessages([]);
+      setPage(1); // Reset page for new user
+    }
+  };
+
+  return (
+    <div style={styles.container}>
+      {/* SIDEBAR: User List */}
+      <div style={styles.sidebar}>
+        <div style={styles.sidebarHeader}>Recent Chats</div>
+        <div style={styles.userList}>
+          {loadingUsers ? <p style={{padding:'20px', textAlign:'center'}}>Loading...</p> : 
+           users.map(user => (
+            <div 
+              key={user.id} 
+              onClick={() => handleUserSelect(user)}
+              style={{...styles.userItem, ...(selectedUser?.id === user.id ? styles.activeUser : {})}}
+            >
+              <div style={{fontWeight:'bold', fontSize:'14px'}}>{user.fullName || 'User'}</div>
+              <div style={{fontSize:'12px', color:'#6b7280', overflow:'hidden', textOverflow:'ellipsis', whiteSpace:'nowrap'}}>
+                {user.email}
+              </div>
             </div>
-            <div style={{ width: '70%', display: 'flex', flexDirection: 'column' }}>
-                {selectedSession ? (
-                    <div style={{ flexGrow: 1, padding: '20px', overflowY: 'auto' }}>
-                        <h3>Conversation with {selectedSession}</h3>
-                        {/* Reverse order for chat history display */}
-                        {chats[selectedSession].slice().reverse().map((msg, index) => ( 
-                            <div key={index} style={{ margin: '10px 0', textAlign: msg.sender === 'USER' ? 'right' : 'left' }}>
-                                <div style={{ display: 'inline-block', padding: '10px', borderRadius: '10px', maxWidth: '70%',
-                                        background: msg.sender === 'USER' ? '#007bff' : '#f1f1f1', 
-                                        color: msg.sender === 'USER' ? 'white' : 'black' }}>
-                                    <p style={{ margin: 0 }}>{msg.message}</p>
-                                    <small style={{ fontSize: '0.7em', color: msg.sender === 'USER' ? '#ccc' : '#888' }}>
-                                        {new Date(msg.createdAt).toLocaleString()}
-                                    </small>
-                                </div>
-                            </div>
-                        ))}
-                    </div>
-                ) : (
-                    <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: '100%' }}>
-                        <p>Select a user to view the chat history.</p>
-                    </div>
-                )}
-            </div>
+          ))}
+          {!loadingUsers && users.length === 0 && (
+             <p style={{padding:'20px', textAlign:'center', color:'#999'}}>No conversations found.</p>
+          )}
         </div>
-    );
-}
+      </div>
+
+      {/* MAIN: Chat Area */}
+      <div style={styles.chatArea}>
+        {selectedUser ? (
+          <>
+            <div style={styles.chatHeader}>
+              <div>
+                <span style={{fontSize:'16px'}}>{selectedUser.fullName}</span>
+                <span style={{fontSize:'12px', color:'#6b7280', marginLeft:'10px'}}>({selectedUser.rcmId})</span>
+              </div>
+            </div>
+
+            <div style={styles.messagesBox}>
+              {/* Pagination Button */}
+              {hasMore && (
+                <button 
+                  onClick={() => setPage(prev => prev + 1)} 
+                  disabled={loadingChat}
+                  style={styles.loadMoreBtn}
+                >
+                  {loadingChat ? 'Loading...' : 'Load Older Messages'}
+                </button>
+              )}
+
+              {/* Message List */}
+              {messages.map((msg) => {
+                const isUser = msg.sender !== 'ADMIN'; // Adjust based on your DB logic
+                return (
+                  <div key={msg.id} style={{...styles.messageBubble, ...(isUser ? styles.received : styles.sent)}}>
+                    <div>{msg.message}</div>
+                    <div style={styles.timestamp}>
+                      {new Date(msg.createdAt).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'})}
+                    </div>
+                  </div>
+                );
+              })}
+              <div ref={messagesEndRef} />
+            </div>
+          </>
+        ) : (
+          <div style={{flex:1, display:'flex', alignItems:'center', justifyContent:'center', color:'#9ca3af'}}>
+            Select a conversation to start reading
+          </div>
+        )}
+      </div>
+    </div>
+  );
+};
 
 export default ChatViewer;
