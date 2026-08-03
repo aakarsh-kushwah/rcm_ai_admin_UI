@@ -1,0 +1,88 @@
+.whatsapp-container {
+    background-color: #111b21 !important;
+    min-height: 100vh;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-family: 'Inter', sans-serif;
+}
+
+.whatsapp-card {
+    background-color: #222e35;
+    padding: 40px;
+    border-radius: 4px;
+    border: none;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.3);
+    width: 100%;
+    max-width: 400px;
+}
+
+.whatsapp-header {
+    color: #fff;
+    margin-bottom: 20px;
+    text-align: center;
+}
+
+.whatsapp-input {
+    background-color: #2a3942;
+    border: none;
+    color: #fff;
+    padding: 12px;
+    width: 100%;
+    border-radius: 4px;
+    margin-bottom: 10px;
+}
+
+.whatsapp-input:focus {
+    outline: 1px solid #00a884;
+}
+
+.whatsapp-btn {
+    background-color: #00a884;
+    color: #fff;
+    border: none;
+    padding: 12px;
+    width: 100%;
+    border-radius: 4px;
+    cursor: pointer;
+    font-weight: bold;
+}
+
+.whatsapp-btn:hover {
+    background-color: #008069;
+}
+
+.whatsapp-link {
+    color: #00a884;
+    text-align: center;
+    text-decoration: none;
+    display: block;
+    margin-top: 10px;
+}
+
+.whatsapp-text-muted {
+    color: #8696a0;
+    text-align: center;
+    margin-bottom: 20px;
+}
+
+.otp-container {
+    display: flex;
+    justify-content: space-between;
+    margin-bottom: 20px;
+}
+
+.otp-input {
+    background-color: #2a3942;
+    border: none;
+    color: #fff;
+    width: 40px;
+    height: 50px;
+    text-align: center;
+    font-size: 1.5rem;
+    border-radius: 4px;
+}
+
+.otp-input:focus {
+    outline: 1px solid #00a884;
+}

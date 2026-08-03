@@ -1,0 +1,115 @@
+/* Main container for the page */
+.list-page {
+    padding: 20px;
+    background-color: #f4f7f6;
+    min-height: calc(100vh - 100px); /* Adjust based on your layout's header height */
+}
+
+.list-header {
+    margin-bottom: 25px;
+}
+
+.list-title {
+    font-size: 2rem;
+    color: #2c3e50;
+    text-align: center;
+    font-weight: 600;
+}
+
+/* Container for the table for better styling */
+.table-container {
+    background-color: #ffffff;
+    border-radius: 8px;
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.08);
+    overflow: hidden; /* Ensures the border-radius is respected */
+}
+
+/* Main table styling */
+.subscriber-table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 0.95rem;
+}
+
+/* Table header styling */
+.subscriber-table thead {
+    background-color: #34495e;
+    color: #ffffff;
+    font-weight: 500;
+}
+
+.subscriber-table th {
+    padding: 15px 20px;
+    text-align: left;
+    letter-spacing: 0.5px;
+}
+
+/* Table body styling */
+.subscriber-table tbody tr {
+    border-bottom: 1px solid #dddddd;
+    transition: background-color 0.2s ease-in-out;
+}
+
+.subscriber-table tbody tr:last-of-type {
+    border-bottom: none;
+}
+
+.subscriber-table tbody tr:hover {
+    background-color: #f5f5f5;
+}
+
+.subscriber-table td {
+    padding: 15px 20px;
+    color: #555;
+}
+
+/* Helper messages for loading, error, and empty states */
+.loading-message, .empty-message, .error-message {
+    text-align: center;
+    padding: 50px;
+    font-size: 1.2rem;
+    color: #777;
+}
+
+.error-message {
+    color: #e74c3c;
+}
+
+/* --- Responsive Design for Mobile --- */
+@media screen and (max-width: 768px) {
+    .subscriber-table thead {
+        /* Hide the header on mobile */
+        display: none;
+    }
+
+    .subscriber-table, .subscriber-table tbody, .subscriber-table tr, .subscriber-table td {
+        display: block;
+        width: 100%;
+    }
+
+    .subscriber-table tr {
+        margin-bottom: 15px;
+        border: 1px solid #ddd;
+        border-radius: 5px;
+    }
+
+    .subscriber-table td {
+        text-align: right; /* Align cell content to the right */
+        padding-left: 50%; /* Create space for the label */
+        position: relative;
+        border-bottom: 1px solid #eee;
+    }
+
+    .subscriber-table td:before {
+        /* Use the data-label attribute as the cell's label */
+        content: attr(data-label);
+        position: absolute;
+        left: 15px;
+        width: 45%;
+        padding-right: 10px;
+        white-space: nowrap;
+        text-align: left;
+        font-weight: bold;
+        color: #34495e;
+    }
+}

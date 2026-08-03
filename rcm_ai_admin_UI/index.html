@@ -1,0 +1,287 @@
+<!DOCTYPE html>
+<html lang="hi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>The Infinite Bond | Nenu & Suyog</title>
+    <link href="https://fonts.googleapis.com/css2?family=Dancing+Script:wght@700&family=Playfair+Display:ital,wght@0,400;0,700;1,400&family=Inter:wght@300;500&display=swap" rel="stylesheet">
+    
+    <style>
+        :root {
+            --bg: #050505;
+            --gold: #d4af37;
+            --gold-glow: rgba(212, 175, 55, 0.3);
+            --text-main: #e0e0e0;
+            --glass: rgba(255, 255, 255, 0.03);
+            --border: rgba(255, 255, 255, 0.1);
+        }
+
+        * { margin: 0; padding: 0; box-sizing: border-box; cursor: none; }
+
+        body {
+            background-color: var(--bg);
+            color: var(--text-main);
+            font-family: 'Inter', sans-serif;
+            overflow-x: hidden;
+            line-height: 1.6;
+        }
+
+        /* --- Advanced Background Particles --- */
+        #canvas-bg {
+            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+            z-index: -1; pointer-events: none;
+        }
+
+        /* --- Custom Cursor Trail --- */
+        #cursor-glow {
+            position: fixed; width: 400px; height: 400px;
+            background: radial-gradient(circle, var(--gold-glow) 0%, transparent 70%);
+            border-radius: 50%; pointer-events: none;
+            transform: translate(-50%, -50%); z-index: 999;
+            transition: width 0.3s, height 0.3s;
+        }
+
+        /* --- Cinematic Timeline --- */
+        .timeline-indicator {
+            position: fixed; left: 30px; top: 50%; transform: translateY(-50%);
+            width: 2px; height: 150px; background: rgba(255,255,255,0.1); z-index: 100;
+        }
+        .timeline-progress {
+            position: absolute; top: 0; left: 0; width: 100%; height: 0%;
+            background: var(--gold); box-shadow: 0 0 15px var(--gold);
+            transition: height 0.3s ease;
+        }
+
+        /* --- Sections --- */
+        section {
+            min-height: 100vh; display: flex; align-items: center; justify-content: center;
+            padding: 10vw; position: relative;
+        }
+
+        .content-card {
+            background: var(--glass);
+            backdrop-filter: blur(20px);
+            padding: 60px; border-radius: 40px;
+            border: 1px solid var(--border);
+            max-width: 800px; width: 100%;
+            box-shadow: 0 25px 50px rgba(0,0,0,0.5);
+            transform-style: preserve-3d;
+            transition: transform 0.1s;
+        }
+
+        h1, h2 {
+            font-family: 'Playfair Display', serif;
+            color: var(--gold); font-size: clamp(2rem, 5vw, 3.5rem);
+            margin-bottom: 20px; opacity: 0; transform: translateY(30px);
+            transition: all 1.2s cubic-bezier(0.16, 1, 0.3, 1);
+        }
+
+        p {
+            font-size: clamp(1rem, 2vw, 1.25rem); font-weight: 300;
+            color: rgba(255,255,255,0.7); opacity: 0;
+            transition: all 1.5s ease 0.3s;
+        }
+
+        .reveal h1, .reveal h2, .reveal p {
+            opacity: 1; transform: translateY(0);
+        }
+
+        /* --- Chapter Labels --- */
+        .chapter-no {
+            font-size: 0.8rem; letter-spacing: 5px; text-transform: uppercase;
+            color: var(--gold); margin-bottom: 15px; display: block;
+        }
+
+        /* --- Specific Section Flavors --- */
+        .unspoken-words {
+            font-style: italic; font-family: 'Playfair Display', serif;
+            border-left: 2px solid var(--gold); padding-left: 30px;
+        }
+
+        .gratitude-glow {
+            text-shadow: 0 0 20px var(--gold-glow); font-weight: 700;
+        }
+
+        /* --- Signature --- */
+        .signature {
+            font-family: 'Dancing Script', cursive;
+            font-size: 2.5rem; color: var(--gold); margin-top: 50px;
+            text-align: right; opacity: 0; transition: 2s ease 1s;
+        }
+        .reveal .signature { opacity: 1; }
+
+        /* --- Interactive Elements --- */
+        .hidden-msg {
+            display: inline-block; color: transparent; border-bottom: 1px dashed var(--gold);
+            transition: color 0.5s, background 0.5s; cursor: help;
+        }
+        .hidden-msg:hover { color: var(--gold); background: rgba(212, 175, 55, 0.1); }
+
+        /* --- Location Tag --- */
+        .location-tag {
+            position: absolute; bottom: 40px; right: 40px;
+            font-size: 0.7rem; color: rgba(255,255,255,0.3);
+            letter-spacing: 2px;
+        }
+
+        @media (max-width: 768px) {
+            .content-card { padding: 30px; border-radius: 25px; }
+            #cursor-glow { display: none; }
+        }
+    </style>
+</head>
+<body>
+
+    <div id="cursor-glow"></div>
+    <canvas id="canvas-bg"></canvas>
+    
+    <div class="timeline-indicator">
+        <div class="timeline-progress" id="progress-bar"></div>
+    </div>
+
+    <section id="beginning">
+        <div class="content-card">
+            <span class="chapter-no">Chapter I</span>
+            <h1>The Spark of Us.</h1>
+            <p>
+                Dosti aksar shor mein hoti hai, par hamari dosti us khamoshi mein shuru hui jise sirf do gehre dil samajh sakte hain. Betma ki un galiyon se lekar aaj ke is pal tak, har lamha ek <span class="hidden-msg">Hifazat karne layak memory</span> ban gaya hai.
+            </p>
+        </div>
+    </section>
+
+    <section id="moments">
+        <div class="content-card">
+            <span class="chapter-no">Chapter II</span>
+            <h2>Moments in Amber.</h2>
+            <p>
+                Yaad hai wo baatein? Log kehte hain main chup hoon, par unhe nahi pata ki tumhare saath ki wo khamoshi bhi kitni dilchasp hai. Humne dooriyon ko sirf ek <span class="highlight-text" style="color:white">Geographical distance</span> mana, dosti ki gehraayi ko nahi.
+            </p>
+        </div>
+    </section>
+
+    <section id="unspoken">
+        <div class="content-card">
+            <span class="chapter-no">Chapter III</span>
+            <div class="unspoken-words">
+                <h2>Unspoken Truths.</h2>
+                <p>
+                    Tum aksar kehti ho, "Suyog, tumhe mujhse behtar mil jayegi." Par Nenu, tum ye kyu nahi samajhti ki <span class="gratitude-glow">"Behtar" ki talash wo karte hain jinko "Asli" ki pehchan nahi hoti.</span> Mere liye tumse behtar koi nahi, sirf tum hi kafi ho.
+                </p>
+            </div>
+        </div>
+    </section>
+
+    <section id="gratitude">
+        <div class="content-card">
+            <span class="chapter-no">Chapter IV</span>
+            <h2 class="gratitude-glow">Gratitude.</h2>
+            <p>
+                Shukriya mera support system banne ke liye. Shukriya ye ehsas dilane ke liye ki boring hona bura nahi hai, agar aapke paas ek sahi insaan ho jo aapke chup rehne ki wajah bhi samajhta ho.
+            </p>
+        </div>
+    </section>
+
+    <section id="forever">
+        <div class="content-card">
+            <span class="chapter-no">Finale</span>
+            <h1>Beyond Words.</h1>
+            <p>
+                Ye khat kabhi khatam nahi hoga, kyunki hamari dosti waqt aur faslon se pare hai. Main hamesha wahi rahunga—tumhari respect karta hua, tumhara khayal rakhta hua.
+            </p>
+            <div class="signature">— From Suyog, who values you beyond words.</div>
+            <div class="location-tag">BETMA ➔ VISNAGAR | FOREVER</div>
+        </div>
+    </section>
+
+    <script>
+        // --- Particle System ---
+        const canvas = document.getElementById('canvas-bg');
+        const ctx = canvas.getContext('2d');
+        let particles = [];
+
+        function resize() {
+            canvas.width = window.innerWidth;
+            canvas.height = window.innerHeight;
+        }
+        window.addEventListener('resize', resize);
+        resize();
+
+        class Particle {
+            constructor() {
+                this.x = Math.random() * canvas.width;
+                this.y = Math.random() * canvas.height;
+                this.size = Math.random() * 2;
+                this.speedX = Math.random() * 0.5 - 0.25;
+                this.speedY = Math.random() * 0.5 - 0.25;
+                this.opacity = Math.random() * 0.5;
+            }
+            update() {
+                this.x += this.speedX;
+                this.y += this.speedY;
+                if (this.x > canvas.width) this.x = 0;
+                if (this.x < 0) this.x = canvas.width;
+                if (this.y > canvas.height) this.y = 0;
+                if (this.y < 0) this.y = canvas.height;
+            }
+            draw() {
+                ctx.fillStyle = `rgba(212, 175, 55, ${this.opacity})`;
+                ctx.beginPath();
+                ctx.arc(this.x, this.y, this.size, 0, Math.PI * 2);
+                ctx.fill();
+            }
+        }
+
+        function init() {
+            for (let i = 0; i < 100; i++) particles.push(new Particle());
+        }
+        function animate() {
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+            particles.forEach(p => { p.update(); p.draw(); });
+            requestAnimationFrame(animate);
+        }
+        init(); animate();
+
+        // --- Custom Cursor ---
+        const cursor = document.getElementById('cursor-glow');
+        document.addEventListener('mousemove', (e) => {
+            cursor.style.left = e.clientX + 'px';
+            cursor.style.top = e.clientY + 'px';
+        });
+
+        // --- Intersection Observer for Reveal ---
+        const observer = new IntersectionObserver((entries) => {
+            entries.forEach(entry => {
+                if (entry.isIntersecting) {
+                    entry.target.classList.add('reveal');
+                }
+            });
+        }, { threshold: 0.3 });
+
+        document.querySelectorAll('section').forEach(section => observer.observe(section));
+
+        // --- Scroll Progress & Parallax Card Tilt ---
+        window.addEventListener('scroll', () => {
+            const winScroll = document.body.scrollTop || document.documentElement.scrollTop;
+            const height = document.documentElement.scrollHeight - document.documentElement.clientHeight;
+            const scrolled = (winScroll / height) * 100;
+            document.getElementById('progress-bar').style.height = scrolled + "%";
+        });
+
+        document.querySelectorAll('.content-card').forEach(card => {
+            card.addEventListener('mousemove', (e) => {
+                const rect = card.getBoundingClientRect();
+                const x = e.clientX - rect.left;
+                const y = e.clientY - rect.top;
+                const centerX = rect.width / 2;
+                const centerY = rect.height / 2;
+                const rotateX = (y - centerY) / 20;
+                const rotateY = (centerX - x) / 20;
+                card.style.transform = `perspective(1000px) rotateX(${rotateX}deg) rotateY(${rotateY}deg)`;
+            });
+            card.addEventListener('mouseleave', () => {
+                card.style.transform = `perspective(1000px) rotateX(0deg) rotateY(0deg)`;
+            });
+        });
+    </script>
+</body>
+</html>
