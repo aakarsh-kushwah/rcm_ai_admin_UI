@@ -68,6 +68,7 @@ const ChatViewer = () => {
                 headers: { 'Cache-Control': 'no-cache' }
             });
 
+            console.log('RAW API RESPONSE:', res.data);
             if (res.data?.success && Array.isArray(res.data.data)) {
                 // 🔥 NO reverse (backend already ASC)
                 setMessages(res.data.data);
@@ -154,7 +155,7 @@ const ChatViewer = () => {
                                 </div>
                             ) : messages.length ? (
                                 messages.map((msg, i) => {
-                                    const isAI = msg.sender !== "USER";
+                                    const isAI = msg.sender === "ai" || msg.sender === "system";
                                     const text = msg.message || msg.response;
 
                                     return (

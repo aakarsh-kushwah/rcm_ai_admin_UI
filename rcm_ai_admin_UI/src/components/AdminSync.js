@@ -22,7 +22,7 @@ const AdminSync = () => {
 
     const fetchHealth = async () => {
         try {
-            const res = await apiClient.get('/utils/inventory-health');
+            const res = await apiClient.get('/api/utils/inventory-health');
             if (res.data.success) setHealth(res.data);
         } catch (error) {
             console.error("Health Check Failed", error);
@@ -32,7 +32,7 @@ const AdminSync = () => {
     const handleSync = async () => {
         setIsSyncing(true);
         try {
-            await apiClient.get('/utils/fill-data');
+            await apiClient.get('/api/utils/fill-data');
         } catch (error) {
             console.error("Sync Trigger Failed", error);
             setIsSyncing(false);

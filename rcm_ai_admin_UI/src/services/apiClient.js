@@ -21,7 +21,7 @@ const flush = (err, token) => {
 };
 
 apiClient.interceptors.request.use((config) => {
-  const token = localStorage.getItem('token');
+  const token = localStorage.getItem('adminAccessToken');
   if (token) {
     config.headers = config.headers || {};
     config.headers.Authorization = `Bearer ${token}`;
@@ -56,7 +56,7 @@ apiClient.interceptors.response.use(
         isRefreshing = true;
         const res = await apiClient.post('/api/auth/refresh', null, { withCredentials: true });
         const token = res?.data?.accessToken || res?.data?.token || null;
-        if (token) localStorage.setItem('token', token);
+        if (token) localStorage.setItem('adminAccessToken', token);
         flush(null, token);
         isRefreshing = false;
 
@@ -68,8 +68,9 @@ apiClient.interceptors.response.use(
       } catch (e) {
         isRefreshing = false;
         flush(e);
-        localStorage.removeItem('token');
-        localStorage.removeItem('user');
+        localStorage.removeItem('adminAccessToken');
+        localStorage.removeItem('adminRefreshToken');
+        localStorage.removeItem('adminRole');
         return Promise.reject(e);
       }
     }

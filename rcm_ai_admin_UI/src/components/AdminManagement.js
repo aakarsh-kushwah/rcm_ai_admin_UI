@@ -13,7 +13,7 @@ function AdminManagement() {
     const fetchAdmins = async () => {
         setLoading(true);
         setError('');
-        const token = localStorage.getItem('token'); 
+        const token = localStorage.getItem('adminAccessToken'); 
         if (!token) {
             setError('ACCESS DENIED: Auth Token Missing.');
             setLoading(false);
@@ -109,11 +109,11 @@ function AdminManagement() {
                                 <div key={admin.id} className="data-row">
                                     <div className="col-main" data-label="Identity">
                                         <div className="avatar-frame">
-                                            {admin.fullName.charAt(0)}
+                                            {admin.name ? admin.name.charAt(0) : 'A'}
                                         </div>
                                         <div className="info-block">
-                                            <span className="name">{admin.fullName}</span>
-                                            <span className="code">{formatID(admin.id)}</span>
+                                            <span className="name">{admin.name || 'Admin'}</span>
+                                            <span className="code">OP-ID-{String(admin.id).substring(0, 8)}</span>
                                         </div>
                                     </div>
 
@@ -122,14 +122,14 @@ function AdminManagement() {
                                     </div>
 
                                     <div className="col-data" data-label="Authority">
-                                        <span className={`role-pill ${admin.rcmId ? 'role-super' : 'role-std'}`}>
-                                            {admin.rcmId ? 'SUPER ADMIN' : 'STANDARD'}
+                                        <span className={`role-pill ${admin.role === 'SUPER_ADMIN' ? 'role-super' : 'role-std'}`}>
+                                            {admin.role || 'ADMIN'}
                                         </span>
                                     </div>
 
                                     <div className="col-data" data-label="Registered">
                                         <span className="time-text">
-                                            {new Date(admin.createdAt).toLocaleDateString()}
+                                            {admin.createdAt ? new Date(admin.createdAt).toLocaleDateString() : 'N/A'}
                                         </span>
                                     </div>
                                 </div>

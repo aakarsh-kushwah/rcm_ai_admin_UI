@@ -12,7 +12,7 @@ function PaymentAnalytics() {
         const fetchPaymentStats = async () => {
             setLoading(true);
             setError('');
-            const token = localStorage.getItem('token'); 
+            const token = localStorage.getItem('adminAccessToken'); 
 
             if (!token) {
                 setError('Authentication missing.');

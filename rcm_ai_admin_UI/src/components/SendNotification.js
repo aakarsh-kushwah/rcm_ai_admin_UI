@@ -23,7 +23,7 @@ const SendNotification = () => {
 
   // Auth Check
   useEffect(() => {
-    const token = localStorage.getItem('token');
+    const token = localStorage.getItem('adminAccessToken');
     if (!token) navigate('/login');
   }, [navigate]);
 
@@ -57,7 +57,7 @@ const SendNotification = () => {
     if (!form.title || !form.body) return toast.error("Title aur Body likhna zaroori hai");
 
     setLoading(true);
-    const token = localStorage.getItem('token');
+    const token = localStorage.getItem('adminAccessToken');
 
     // Payload ready karna
     const payload = {
@@ -71,7 +71,7 @@ const SendNotification = () => {
 
     try {
       await axios.post(
-        `${process.env.REACT_APP_API_URL}/api/notifications/send`,
+        `${process.env.REACT_APP_API_URL}/api/admin/notifications/send-all`,
         payload,
         { headers: { Authorization: `Bearer ${token}` } }
       );

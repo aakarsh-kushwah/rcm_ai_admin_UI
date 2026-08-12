@@ -16,7 +16,7 @@ function UserChatHistory() {
         const fetchAllChats = async () => {
             setLoading(true);
             try {
-                const token = localStorage.getItem('adminToken');
+                const token = localStorage.getItem('adminAccessToken');
                 const response = await fetch(`${process.env.REACT_APP_API_URL}/api/admin/chats`, {
                     headers: { 'Authorization': `Bearer ${token}` }
                 });

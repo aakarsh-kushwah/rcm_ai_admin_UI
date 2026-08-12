@@ -9,7 +9,11 @@ import './Layout.css';
 function Layout() {
     const navigate = useNavigate();
     const handleLogout = () => {
-        localStorage.removeItem('token');
+        localStorage.removeItem('adminAccessToken');
+        localStorage.removeItem('adminRefreshToken');
+        localStorage.removeItem('adminRole');
+        localStorage.removeItem('admin');
+        localStorage.removeItem('token'); // cleanup legacy token if present
         navigate('/login');
     };
 
@@ -32,7 +36,7 @@ function Layout() {
                     <NavLink to="/dashboard" className="nav-chip">📊 Dash</NavLink>
                     <NavLink to="/users" className="nav-chip">👥 Users</NavLink>
                     <NavLink to="/admins" className="nav-chip">🛡️ Admins</NavLink>
-                    <NavLink to="/subscribers" className="nav-chip">💎 Subs</NavLink>
+
                     <NavLink to="/videos" className="nav-chip">🎬 Videos</NavLink>
                     <NavLink to="/voice-training" className="nav-chip">🎙️ Voice</NavLink> {/* ADDED */}
                     <NavLink to="/chats" className="nav-chip">💬 Chats</NavLink>
@@ -56,9 +60,7 @@ function Layout() {
                         <NavLink to="/admins" className="side-nav-item">
                             <Shield size={18} /> Admins
                         </NavLink>
-                        <NavLink to="/subscribers" className="side-nav-item">
-                            <Crown size={18} /> Subscribers
-                        </NavLink>
+
 
                         <div className="nav-group-label">CONTENT & AI</div>
                         <NavLink to="/videos" className="side-nav-item">

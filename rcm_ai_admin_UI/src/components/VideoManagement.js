@@ -177,7 +177,7 @@ function VideoManagement() {
     const [editingVideo, setEditingVideo] = useState(null);
     const [editForm, setEditForm] = useState({ title: '', description: '', category: '' });
 
-    const token = localStorage.getItem('token');
+    const token = localStorage.getItem('adminAccessToken');
     const API_URL = process.env.REACT_APP_API_URL;
 
     // --- API Handlers ---

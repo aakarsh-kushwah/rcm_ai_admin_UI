@@ -23,7 +23,7 @@ const VoiceTraining = () => {
         setMessage(null);
 
         try {
-            const token = localStorage.getItem('token'); 
+            const token = localStorage.getItem('adminAccessToken'); 
 
             if (!token) {
                 setMessage({ type: 'error', text: '🔒 Session Expired. Please Login Again.' });

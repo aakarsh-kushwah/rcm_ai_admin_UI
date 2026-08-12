@@ -5,8 +5,8 @@ import { Navigate } from 'react-router-dom';
 
 const AdminProtectedRoute = ({ children }) => {
     // Standardized token और role का उपयोग करें
-    const token = localStorage.getItem('token');
-    const userRole = localStorage.getItem('userRole'); 
+    const token = localStorage.getItem('adminAccessToken');
+    const userRole = localStorage.getItem('adminRole'); 
     
     // 1. Authentication चेक
     if (!token) {
@@ -14,7 +14,7 @@ const AdminProtectedRoute = ({ children }) => {
     }
     
     // 2. Authorization चेक: केवल ADMIN role को अनुमति दें
-    if (userRole !== 'ADMIN') {
+    if (userRole !== 'ADMIN' && userRole !== 'SUPER_ADMIN') {
         alert("Access Denied: Only Administrators can view this page.");
         // Non-admin users को हटा दें
         return <Navigate to="/login" replace />; 

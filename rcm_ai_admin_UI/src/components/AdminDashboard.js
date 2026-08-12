@@ -25,14 +25,7 @@ const menuItems = [
         stat: "8 Admins",
         color: "purple"
     },
-    {
-        title: "Subscription Hub",
-        desc: "Track active plans, revenue streams, and billing cycles.",
-        icon: <Crown size={32} />,
-        path: "/subscribers",
-        stat: "$45k MRR",
-        color: "gold"
-    },
+
     {
         title: "Video Library",
         desc: "Upload, edit, and organize video content for the platform.",

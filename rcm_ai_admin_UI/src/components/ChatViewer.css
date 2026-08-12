@@ -125,12 +125,11 @@
 }
 
 .bubble-meta {
-  position: absolute;
-  bottom: 4px;
-  right: 7px;
   display: flex;
   align-items: center;
   gap: 3px;
+  margin-top: 5px; /* Add some space above the meta info */
+  align-self: flex-end; /* Pushes meta to the right within the flex column */
 }
 .timestamp { font-size: 0.65rem; color: #667781; }
 .read { color: #53bdeb; } /* Blue ticks */
