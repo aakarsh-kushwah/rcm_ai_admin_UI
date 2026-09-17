@@ -1,0 +1,96 @@
+import axios from 'axios';
+
+const apiClient = axios.create({
+  baseURL: process.env.REACT_APP_API_URL,
+  timeout: 15000,
+  withCredentials: true,
+});
+
+let isRefreshing = false;
+let waiters = [];
+
+const waitForRefresh = () =>
+  new Promise((resolve, reject) => {
+    waiters.push({ resolve, reject });
+  });
+
+const flush = (err, token) => {
+  const w = waiters;
+  waiters = [];
+  w.forEach(({ resolve, reject }) => (err ? reject(err) : resolve(token)));
+};
+
+apiClient.interceptors.request.use((config) => {
+  const url = config.url || '';
+  const isAuthEndpoint = 
+    url.includes('/login') || 
+    url.includes('/register') || 
+    url.includes('/auth/') || 
+    url.includes('/refresh');
+
+  if (!isAuthEndpoint) {
+    const token = localStorage.getItem('token');
+    if (token) {
+      config.headers = config.headers || {};
+      config.headers.Authorization = `Bearer ${token}`;
+    }
+  }
+  return config;
+});
+
+apiClient.interceptors.response.use(
+  (r) => r,
+  async (error) => {
+    const original = error?.config;
+    const status = error?.response?.status;
+    const requestUrl = String(original?.url || '');
+    const isLoginOrAuth = 
+      requestUrl.includes('/login') || 
+      requestUrl.includes('/auth/') || 
+      requestUrl.includes('/refresh');
+
+    if (
+      status === 401 &&
+      original &&
+      !original.__rcmRetry &&
+      !isLoginOrAuth
+    ) {
+      original.__rcmRetry = true;
+
+      try {
+        if (isRefreshing) {
+          const token = await waitForRefresh();
+          if (token) {
+            original.headers = original.headers || {};
+            original.headers.Authorization = `Bearer ${token}`;
+          }
+          return apiClient(original);
+        }
+
+        isRefreshing = true;
+        const res = await apiClient.post('/api/auth/admin/refresh', null, { withCredentials: true });
+        const token = res?.data?.accessToken || res?.data?.token || null;
+        if (token) localStorage.setItem('token', token);
+        flush(null, token);
+        isRefreshing = false;
+
+        if (token) {
+          original.headers = original.headers || {};
+          original.headers.Authorization = `Bearer ${token}`;
+        }
+        return apiClient(original);
+      } catch (e) {
+        isRefreshing = false;
+        flush(e);
+        localStorage.removeItem('token');
+        localStorage.removeItem('user');
+        return Promise.reject(e);
+      }
+    }
+
+    return Promise.reject(error);
+  }
+);
+
+export default apiClient;
+

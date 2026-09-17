@@ -1,0 +1,332 @@
+/* ==========================================================================
+   RCM AI — Admin "Command Center" Dashboard
+   Scoped under .dashboard-* / .bento-* — no global/html/body selectors,
+   so this cannot leak into any other admin screen.
+   ========================================================================== */
+
+.dashboard-wrapper {
+  --dc-bg: #0b0c0e;
+  --dc-surface: #16181b;
+  --dc-surface-2: #1c1f23;
+  --dc-border: rgba(255, 255, 255, 0.08);
+  --dc-border-strong: rgba(255, 255, 255, 0.14);
+
+  --dc-text: #f2f3f4;
+  --dc-text-dim: #9aa0a6;
+  --dc-text-faint: #666b70;
+
+  --dc-blue: #3b82f6;
+  --dc-purple: #8b5cf6;
+  --dc-gold: #d8ac5c;
+  --dc-red: #e5675a;
+  --dc-teal: #14b8a6;
+  --dc-orange: #f2994a;
+  --dc-green: #22c55e;
+  --dc-cyan: #06b6d4;
+
+  --dc-font: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Helvetica, Arial, sans-serif;
+  --dc-ease: cubic-bezier(0.22, 1, 0.36, 1);
+
+  min-height: 100vh;
+  width: 100%;
+  background: var(--dc-bg);
+  color: var(--dc-text);
+  font-family: var(--dc-font);
+  -webkit-font-smoothing: antialiased;
+}
+
+.dashboard-wrapper * {
+  box-sizing: border-box;
+}
+
+.dashboard-content {
+  max-width: 1240px;
+  margin: 0 auto;
+  padding: 40px 32px 80px;
+}
+
+/* ---- Header ---- */
+
+.dashboard-header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 20px;
+  flex-wrap: wrap;
+  margin-bottom: 36px;
+  padding-bottom: 24px;
+  border-bottom: 1px solid var(--dc-border);
+}
+
+.header-text h1 {
+  margin: 0 0 6px;
+  font-size: 1.9rem;
+  font-weight: 700;
+  letter-spacing: -0.015em;
+  color: var(--dc-text);
+}
+
+.header-text p {
+  margin: 0;
+  font-size: 0.92rem;
+  color: var(--dc-text-dim);
+}
+
+.system-status {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 16px;
+  border-radius: 999px;
+  background: var(--dc-surface);
+  border: 1px solid var(--dc-border);
+  font-size: 0.82rem;
+  font-weight: 500;
+  color: var(--dc-text-dim);
+  flex-shrink: 0;
+}
+
+.pulse-dot {
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  background: var(--dc-green);
+  flex-shrink: 0;
+  box-shadow: 0 0 0 0 rgba(34, 197, 94, 0.5);
+  animation: dc-pulse 2s ease-in-out infinite;
+}
+
+@keyframes dc-pulse {
+  0% { box-shadow: 0 0 0 0 rgba(34, 197, 94, 0.45); }
+  70% { box-shadow: 0 0 0 6px rgba(34, 197, 94, 0); }
+  100% { box-shadow: 0 0 0 0 rgba(34, 197, 94, 0); }
+}
+
+/* ---- Bento grid ---- */
+
+.bento-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(270px, 1fr));
+  gap: 18px;
+}
+
+/* ---- Card ---- */
+
+.bento-card {
+  --card-accent: var(--dc-blue);
+
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  min-height: 190px;
+  padding: 22px;
+  border-radius: 18px;
+  background: var(--dc-surface);
+  border: 1px solid var(--dc-border);
+  text-decoration: none;
+  color: inherit;
+  overflow: hidden;
+  transition: transform 0.2s var(--dc-ease), border-color 0.2s var(--dc-ease), box-shadow 0.2s var(--dc-ease);
+}
+
+.bento-card:hover {
+  transform: translateY(-3px);
+  border-color: color-mix(in srgb, var(--card-accent) 45%, var(--dc-border-strong));
+  box-shadow: 0 16px 32px -12px color-mix(in srgb, var(--card-accent) 35%, transparent);
+}
+
+.bento-card:active {
+  transform: translateY(-1px) scale(0.99);
+}
+
+.bento-card:focus-visible {
+  outline: none;
+  border-color: var(--card-accent);
+  box-shadow: 0 0 0 3px color-mix(in srgb, var(--card-accent) 35%, transparent);
+}
+
+/* Per-theme accent — one variable drives icon color, glow, stat badge, and
+   hover border/shadow, so adding a new theme is a single line. */
+.blue-theme { --card-accent: var(--dc-blue); }
+.purple-theme { --card-accent: var(--dc-purple); }
+.gold-theme { --card-accent: var(--dc-gold); }
+.red-theme { --card-accent: var(--dc-red); }
+.teal-theme { --card-accent: var(--dc-teal); }
+.orange-theme { --card-accent: var(--dc-orange); }
+.green-theme { --card-accent: var(--dc-green); }
+.cyan-theme { --card-accent: var(--dc-cyan); }
+
+.card-bg-glow {
+  position: absolute;
+  top: -40px;
+  right: -40px;
+  width: 140px;
+  height: 140px;
+  border-radius: 50%;
+  background: radial-gradient(circle, color-mix(in srgb, var(--card-accent) 55%, transparent) 0%, transparent 72%);
+  filter: blur(6px);
+  opacity: 0.5;
+  pointer-events: none;
+  transition: opacity 0.2s var(--dc-ease), transform 0.2s var(--dc-ease);
+}
+
+.bento-card:hover .card-bg-glow {
+  opacity: 0.85;
+  transform: scale(1.15);
+}
+
+.card-header {
+  position: relative;
+  z-index: 1;
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+}
+
+.icon-box {
+  display: grid;
+  place-items: center;
+  width: 52px;
+  height: 52px;
+  border-radius: 14px;
+  background: color-mix(in srgb, var(--card-accent) 16%, var(--dc-surface-2));
+  color: var(--card-accent);
+}
+
+.arrow-box {
+  display: grid;
+  place-items: center;
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  background: var(--dc-surface-2);
+  border: 1px solid var(--dc-border);
+  color: var(--dc-text-faint);
+  transition: transform 0.2s var(--dc-ease), color 0.2s var(--dc-ease), border-color 0.2s var(--dc-ease);
+}
+
+.bento-card:hover .arrow-box {
+  transform: translate(2px, -2px);
+  color: var(--card-accent);
+  border-color: color-mix(in srgb, var(--card-accent) 45%, var(--dc-border));
+}
+
+.card-body {
+  position: relative;
+  z-index: 1;
+  margin: 18px 0;
+}
+
+.card-body h3 {
+  margin: 0 0 6px;
+  font-size: 1.08rem;
+  font-weight: 650;
+  letter-spacing: -0.01em;
+  color: var(--dc-text);
+}
+
+.card-body p {
+  margin: 0;
+  font-size: 0.84rem;
+  line-height: 1.5;
+  color: var(--dc-text-dim);
+}
+
+.card-footer {
+  position: relative;
+  z-index: 1;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  padding-top: 14px;
+  border-top: 1px solid var(--dc-border);
+}
+
+.stat-badge {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 0.76rem;
+  font-weight: 600;
+  color: var(--card-accent);
+}
+
+.action-text {
+  display: flex;
+  align-items: center;
+  gap: 2px;
+  font-size: 0.76rem;
+  font-weight: 500;
+  color: var(--dc-text-faint);
+  transition: color 0.2s var(--dc-ease), gap 0.2s var(--dc-ease);
+  white-space: nowrap;
+}
+
+.bento-card:hover .action-text {
+  color: var(--dc-text-dim);
+  gap: 5px;
+}
+
+/* ---- Responsive ---- */
+
+@media (max-width: 860px) {
+  .dashboard-content {
+    padding: 28px 18px 60px;
+  }
+
+  .bento-grid {
+    grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+    gap: 14px;
+  }
+
+  .header-text h1 {
+    font-size: 1.6rem;
+  }
+}
+
+@media (max-width: 560px) {
+  .dashboard-header {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+
+  .bento-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .bento-card {
+    min-height: 168px;
+    padding: 18px;
+  }
+
+  .action-text span {
+    display: none;
+  }
+}
+
+/* Fallback for browsers without color-mix() support: flat, still on-brand */
+@supports not (color: color-mix(in srgb, red 50%, blue)) {
+  .card-bg-glow {
+    background: radial-gradient(circle, var(--card-accent) 0%, transparent 72%);
+    opacity: 0.22;
+  }
+  .icon-box {
+    background: var(--dc-surface-2);
+  }
+  .bento-card:hover {
+    border-color: var(--card-accent);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .bento-card,
+  .card-bg-glow,
+  .arrow-box,
+  .action-text,
+  .pulse-dot {
+    transition: none;
+    animation: none;
+  }
+}
