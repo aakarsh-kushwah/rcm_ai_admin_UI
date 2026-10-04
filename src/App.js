@@ -9,7 +9,9 @@ import UserManagement from './components/UserManagement';
 import AdminManagement from './components/AdminManagement';
 import VideoManagement from './components/VideoManagement';
 import ChannelManagement from './components/ChannelManagement';
+import ShortsManagement from './components/ShortsManagement';
 import VoiceTraining from './components/VoiceTraining';
+import InstagramReelsManagement from './components/InstagramReelsManagement';
 import ChatViewer from './components/ChatViewer';
 import SendNotification from './components/SendNotification';
 import PaymentAnalytics from './components/PaymentAnalytics';
@@ -36,6 +38,8 @@ export default function App() {
         <Route path="admins" element={<AdminManagement />} />
         <Route path="videos" element={<VideoManagement />} />
         <Route path="channels" element={<ChannelManagement />} />
+        <Route path="shorts" element={<ShortsManagement />} />
+        <Route path="instagram" element={<InstagramReelsManagement />} />
         <Route path="voice-training" element={<VoiceTraining />} />
         <Route path="chats" element={<ChatViewer />} />
         <Route path="sendnotifications" element={<SendNotification />} />

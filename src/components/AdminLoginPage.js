@@ -19,6 +19,7 @@ export default function AdminLoginPage() {
     if (!canSubmit || loading) return;
 
     // Clear stale or expired tokens from storage prior to dispatching login request
+    localStorage.removeItem('auth_token');
     localStorage.removeItem('token');
     localStorage.removeItem('user');
     localStorage.removeItem('userRole');
@@ -49,6 +50,7 @@ export default function AdminLoginPage() {
       }
 
       console.log('🔐 [AdminLoginPage] Saving token & user to localStorage...');
+      localStorage.setItem('auth_token', token);
       localStorage.setItem('token', token);
       localStorage.setItem('user', JSON.stringify(user));
       localStorage.setItem('userRole', userRole || 'ADMIN');

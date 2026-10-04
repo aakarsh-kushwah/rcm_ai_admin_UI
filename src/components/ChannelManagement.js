@@ -15,6 +15,7 @@ function ChannelManagement() {
   const [toast, setToast] = useState({ message: '', type: 'success' });
   const [searchTerm, setSearchTerm] = useState('');
   const [deleteConfirmId, setDeleteConfirmId] = useState(null);
+  const [channelSource, setChannelSource] = useState('channel'); // New state for channel source
 
   const showToast = (message, type = 'success') => {
     setToast({ message, type });
@@ -51,6 +52,11 @@ function ChannelManagement() {
       const response = await apiClient.post('/api/channels/resolve', { input });
       if (response.data.success) {
         setPreviewChannel(response.data.data);
+        if (response.data.data.isShortsOnly) {
+          setChannelSource('shorts-only');
+        } else {
+          setChannelSource('channel');
+        }
       } else {
         setError(response.data.message || 'Failed to resolve channel.');
       }
@@ -66,11 +72,16 @@ function ChannelManagement() {
     setAddLoading(true);
     setError('');
     try {
-      const response = await apiClient.post('/api/channels', previewChannel);
+      const payload = {
+        ...previewChannel,
+        isShortsOnly: channelSource === 'shorts-only'
+      };
+      const response = await apiClient.post('/api/channels', payload);
       if (response.data.success) {
-        showToast('Channel added successfully and sync triggered!');
+        showToast(response.data.message);
         setInput('');
         setPreviewChannel(null);
+        setChannelSource('channel'); // Reset to default
         fetchChannels();
       } else {
         setError(response.data.message || 'Failed to add channel.');
@@ -167,6 +178,16 @@ function ChannelManagement() {
                 <h4>{previewChannel.name}</h4>
                 <p>{previewChannel.handle || `ID: ${previewChannel.youtubeChannelId}`}</p>
                 <p>{previewChannel.itemCount} videos found in uploads playlist.</p>
+                <div className="channel-source-toggle" style={{ marginTop: '10px' }}>
+                  <label style={{ display: 'flex', alignItems: 'center', gap: '8px', cursor: 'pointer', fontWeight: '500' }}>
+                    <input
+                      type="checkbox"
+                      checked={channelSource === 'shorts-only'}
+                      onChange={(e) => setChannelSource(e.target.checked ? 'shorts-only' : 'channel')}
+                    />
+                    Shorts-only channel — hide from Channel section
+                  </label>
+                </div>
               </div>
             </div>
             <div className="preview-actions">
@@ -200,14 +221,7 @@ function ChannelManagement() {
           <div className="channels-table-wrapper">
             <table className="channels-table">
               <thead>
-                <tr>
-                  <th>Channel</th>
-                  <th>Sync Status</th>
-                  <th>Last Synced</th>
-                  <th>Live Opt-In</th>
-                  <th>Videos</th>
-                  <th>Actions</th>
-                </tr>
+                <tr><th>Channel</th><th>Source</th><th>Sync Status</th><th>Last Synced</th><th>Live Opt-In</th><th>Videos</th><th>Actions</th></tr>
               </thead>
               <tbody>
                 {filteredChannels.map((ch) => (
@@ -220,6 +234,11 @@ function ChannelManagement() {
                           <div className="table-handle">{ch.handle || ch.youtubeChannelId}</div>
                         </div>
                       </div>
+                    </td>
+                    <td>
+                      <span className={`status-badge ${ch.source === 'shorts-only' ? 'shorts-only' : 'channel'}`}>
+                        {ch.source === 'shorts-only' ? 'Shorts Only' : 'Channel'}
+                      </span>
                     </td>
                     <td>
                       <div style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>

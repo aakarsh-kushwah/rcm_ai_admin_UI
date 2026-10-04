@@ -29,7 +29,7 @@ apiClient.interceptors.request.use((config) => {
     url.includes('/refresh');
 
   if (!isAuthEndpoint) {
-    const token = localStorage.getItem('token');
+    const token = localStorage.getItem('auth_token') || localStorage.getItem('token') || localStorage.getItem('adminToken');
     if (token) {
       config.headers = config.headers || {};
       config.headers.Authorization = `Bearer ${token}`;
@@ -70,7 +70,10 @@ apiClient.interceptors.response.use(
         isRefreshing = true;
         const res = await apiClient.post('/api/auth/admin/refresh', null, { withCredentials: true });
         const token = res?.data?.accessToken || res?.data?.token || null;
-        if (token) localStorage.setItem('token', token);
+        if (token) {
+          localStorage.setItem('auth_token', token);
+          localStorage.setItem('token', token);
+        }
         flush(null, token);
         isRefreshing = false;
 
@@ -82,6 +85,7 @@ apiClient.interceptors.response.use(
       } catch (e) {
         isRefreshing = false;
         flush(e);
+        localStorage.removeItem('auth_token');
         localStorage.removeItem('token');
         localStorage.removeItem('user');
         return Promise.reject(e);

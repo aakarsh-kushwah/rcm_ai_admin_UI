@@ -2,7 +2,7 @@ import React from 'react';
 import { Outlet, NavLink, useNavigate } from 'react-router-dom';
 import { 
     LayoutDashboard, Users, Shield, Crown, 
-    Video, Youtube, Mic, MessageSquare, Bell, LogOut 
+    Video, Youtube, Film, Mic, MessageSquare, Bell, LogOut, Instagram 
 } from 'lucide-react'; // Installing icons for pro look (npm install lucide-react)
 import './Layout.css';
 
@@ -34,6 +34,8 @@ function Layout() {
                     <NavLink to="/admins" className="nav-chip">🛡️ Admins</NavLink>
                     <NavLink to="/videos" className="nav-chip">🎬 Videos</NavLink>
                     <NavLink to="/channels" className="nav-chip">📺 Channels</NavLink>
+                    <NavLink to="/shorts" className="nav-chip">📱 Shorts</NavLink>
+                    <NavLink to="/instagram" className="nav-chip">📸 Insta</NavLink>
                     <NavLink to="/voice-training" className="nav-chip">🎙️ Voice</NavLink> {/* ADDED */}
                     <NavLink to="/chats" className="nav-chip">💬 Chats</NavLink>
                     <NavLink to="/sendnotifications" className="nav-chip">📢 Alerts</NavLink> {/* ADDED */}
@@ -63,6 +65,12 @@ function Layout() {
                         </NavLink>
                         <NavLink to="/channels" className="side-nav-item">
                             <Youtube size={18} /> Channels
+                        </NavLink>
+                        <NavLink to="/shorts" className="side-nav-item">
+                            <Film size={18} /> Shorts Management
+                        </NavLink>
+                        <NavLink to="/instagram" className="side-nav-item">
+                            <Instagram size={18} /> Instagram Reels
                         </NavLink>
                         <NavLink to="/voice-training" className="side-nav-item">
                             <Mic size={18} /> Voice AI
