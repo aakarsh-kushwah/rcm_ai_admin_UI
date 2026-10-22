@@ -1,90 +1,326 @@
-:root {
-  --accent: #6366f1;
-  --bg-dark: #020617;
-  --glass: rgba(255, 255, 255, 0.03);
-  --border: rgba(255, 255, 255, 0.08);
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap');
+
+/* ==========================================================
+   Layout.css
+   < 1024px  : top bar + slide-in menu (sab buttons full label ke saath)
+   >= 1024px : fixed left sidebar
+   Naye colours chahiye to sirf .al-root ke variables badlo.
+   ========================================================== */
+
+body {
+  margin: 0;
 }
 
-.admin-app-root {
+.al-root {
+  --al-sidebar-w: 248px;
+  --al-topbar-h: 56px;
+  --al-bg: #0e1013;
+  --al-surface: #14171d;
+  --al-surface-2: #1c2028;
+  --al-line: #262b35;
+  --al-ink: #eef0f4;
+  --al-ink-2: #9aa1b2;
+  --al-accent: #e23744;
+  --al-accent-soft: rgba(226, 55, 68, 0.16);
+  --al-accent-text: #ff808a;
+
   min-height: 100vh;
-  background-color: var(--bg-dark);
-  display: flex;
-  flex-direction: column;
+  min-height: 100dvh;
+  background: var(--al-bg);
+  color: var(--al-ink);
+  font-family: 'Inter', system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif;
+  font-size: 15px;
+  line-height: 1.45;
+  -webkit-font-smoothing: antialiased;
+  -webkit-tap-highlight-color: transparent;
 }
 
-.glass-header {
+.al-root *,
+.al-root *::before,
+.al-root *::after {
+  box-sizing: border-box;
+}
+
+.al-root button {
+  font-family: inherit;
+}
+
+.al-root :focus-visible {
+  outline: 2px solid var(--al-accent);
+  outline-offset: 2px;
+}
+
+/* ---------- Top bar (phones & tablets) ---------- */
+.al-topbar {
   position: sticky;
   top: 0;
-  z-index: 1000;
-  background: rgba(2, 6, 23, 0.85);
-  backdrop-filter: blur(20px);
-  border-bottom: 1px solid var(--border);
-}
-
-.header-content {
-  height: 70px;
-  padding: 0 30px;
+  z-index: 40;
+  height: var(--al-topbar-h);
   display: flex;
-  justify-content: space-between;
   align-items: center;
+  gap: 4px;
+  padding: 0 8px;
+  padding-left: calc(8px + env(safe-area-inset-left, 0px));
+  padding-right: calc(8px + env(safe-area-inset-right, 0px));
+  background: color-mix(in srgb, var(--al-surface) 92%, transparent);
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+  border-bottom: 1px solid var(--al-line);
 }
 
-.brand-identity { display: flex; align-items: center; gap: 12px; }
-.logo-glow { width: 12px; height: 12px; background: var(--accent); border-radius: 50%; box-shadow: 0 0 15px var(--accent); }
-.brand-text { color: #fff; font-weight: 800; letter-spacing: 1.5px; font-size: 0.9rem; }
-
-/* Desktop Structure */
-.layout-container { display: flex; flex: 1; height: calc(100vh - 70px); }
-
-@media (min-width: 769px) {
-  .fixed-sidebar {
-    width: 250px;
-    background: rgba(15, 23, 42, 0.3);
-    border-right: 1px solid var(--border);
-    padding: 30px 15px;
-    overflow-y: auto;
-  }
-  .main-viewport { flex: 1; overflow-y: auto; padding: 40px; }
-  .mobile-tab-bar { display: none; }
+.al-topbar-title {
+  margin: 0;
+  font-size: 17px;
+  font-weight: 600;
+  letter-spacing: -0.01em;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 
-/* Sidebar Links Styling */
-.side-nav-item {
-  display: block;
-  padding: 12px 20px;
-  color: #94a3b8;
-  text-decoration: none;
+.al-icon-btn {
+  width: 44px;
+  height: 44px;
+  flex: none;
+  display: grid;
+  place-items: center;
+  border: 0;
   border-radius: 12px;
-  margin-bottom: 8px;
-  transition: 0.3s;
-}
-.side-nav-item.active, .side-nav-item:hover {
-  background: var(--glass);
-  color: #fff;
+  background: transparent;
+  color: var(--al-ink);
+  cursor: pointer;
 }
 
-/* Mobile Top Nav */
-@media (max-width: 768px) {
-  .fixed-sidebar { display: none; }
-  .header-content { padding: 0 15px; }
-  .mobile-tab-bar {
-    display: flex;
-    overflow-x: auto;
-    padding: 10px 15px;
-    gap: 10px;
-    scrollbar-width: none;
+.al-icon-btn:hover {
+  background: var(--al-surface-2);
+}
+
+/* ---------- Backdrop ---------- */
+.al-backdrop {
+  position: fixed;
+  inset: 0;
+  z-index: 50;
+  background: rgba(0, 0, 0, 0.6);
+}
+
+/* ---------- Sidebar / mobile menu ---------- */
+.al-sidebar {
+  position: fixed;
+  z-index: 60;
+  top: 0;
+  bottom: 0;
+  left: 0;
+  width: min(86vw, 300px);
+  display: flex;
+  flex-direction: column;
+  background: var(--al-surface);
+  border-right: 1px solid var(--al-line);
+  padding-left: env(safe-area-inset-left, 0px);
+
+  /* band hone par tab-focus bhi nahi jayega */
+  visibility: hidden;
+  transform: translateX(-100%);
+  transition: transform 0.22s ease, visibility 0s linear 0.22s;
+}
+
+.al-sidebar.is-open {
+  visibility: visible;
+  transform: none;
+  transition: transform 0.22s ease, visibility 0s;
+}
+
+.al-sidebar-head {
+  height: var(--al-topbar-h);
+  flex: none;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0 8px 0 20px;
+  border-bottom: 1px solid var(--al-line);
+}
+
+.al-brand {
+  font-size: 18px;
+  font-weight: 700;
+  letter-spacing: -0.01em;
+}
+
+.al-nav {
+  flex: 1;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  padding: 4px 12px 16px;
+  scrollbar-width: thin;
+  scrollbar-color: var(--al-line) transparent;
+}
+
+.al-group-label {
+  padding: 18px 12px 6px;
+  font-size: 12.5px;
+  font-weight: 600;
+  color: var(--al-ink-2);
+}
+
+.al-nav-item {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  min-height: 48px;
+  padding: 0 12px;
+  margin-bottom: 2px;
+  border-radius: 12px;
+  color: var(--al-ink);
+  text-decoration: none;
+  font-size: 15px;
+  font-weight: 500;
+  transition: background 0.12s, color 0.12s;
+}
+
+.al-nav-item svg {
+  flex: none;
+  color: var(--al-ink-2);
+}
+
+.al-nav-item span {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.al-nav-item:hover {
+  background: var(--al-surface-2);
+}
+
+.al-nav-item.is-active {
+  background: var(--al-accent-soft);
+  color: var(--al-accent-text);
+  font-weight: 600;
+}
+
+.al-nav-item.is-active svg {
+  color: var(--al-accent-text);
+}
+
+.al-sidebar-foot {
+  flex: none;
+  padding: 12px 12px calc(12px + env(safe-area-inset-bottom, 0px));
+  border-top: 1px solid var(--al-line);
+}
+
+.al-logout {
+  width: 100%;
+  min-height: 48px;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 0 12px;
+  border: 0;
+  border-radius: 12px;
+  background: transparent;
+  color: var(--al-ink);
+  font-size: 15px;
+  font-weight: 500;
+  cursor: pointer;
+  text-align: left;
+}
+
+.al-logout svg {
+  color: var(--al-ink-2);
+}
+
+.al-logout:hover {
+  background: rgba(239, 68, 68, 0.14);
+  color: #ff8a8a;
+}
+
+.al-logout:hover svg {
+  color: #ff8a8a;
+}
+
+/* ---------- Main area ---------- */
+.al-main {
+  min-width: 0;
+  padding: 16px;
+  padding-left: calc(16px + env(safe-area-inset-left, 0px));
+  padding-right: calc(16px + env(safe-area-inset-right, 0px));
+}
+
+/* ---------- Desktop ---------- */
+@media (min-width: 1024px) {
+  .al-topbar,
+  .al-backdrop,
+  .al-close-btn {
+    display: none;
   }
-  .mobile-tab-bar::-webkit-scrollbar { display: none; }
-  .nav-chip {
-    white-space: nowrap;
-    background: var(--glass);
-    border: 1px solid var(--border);
-    color: #94a3b8;
-    padding: 8px 18px;
-    border-radius: 100px;
-    text-decoration: none;
-    font-size: 0.8rem;
+
+  .al-sidebar {
+    width: var(--al-sidebar-w);
+    visibility: visible;
+    transform: none;
+    transition: none;
   }
-  .nav-chip.active { background: var(--accent); color: white; border-color: var(--accent); }
-  .main-viewport { flex: 1; overflow-y: auto; padding: 20px; }
+
+  .al-sidebar-head {
+    padding-left: 20px;
+  }
+
+  .al-nav-item {
+    min-height: 42px;
+  }
+
+  .al-logout {
+    min-height: 42px;
+  }
+
+  .al-main {
+    margin-left: var(--al-sidebar-w);
+    padding: 28px 32px;
+  }
+}
+
+/* ==========================================================
+   SendNotification page ko layout ke andar fit karne ke overrides
+   ========================================================== */
+
+.al-root .sn-page {
+  --bg: transparent;
+  --surface: #161a21;
+  --surface-2: #1e232c;
+  --ink: #eef0f4;
+  --ink-2: #9aa1b2;
+  --line: #262b35;
+  --accent-soft: rgba(226, 55, 68, 0.16);
+  --ok-soft: #14301f;
+  --warn-soft: #3a2a0c;
+  --bad-soft: #3a1717;
+  --shadow: 0 1px 2px rgba(0, 0, 0, 0.4), 0 8px 24px rgba(0, 0, 0, 0.35);
+
+  min-height: 0;
+  background: transparent;
+  padding: 0 0 calc(var(--footer-h) + env(safe-area-inset-bottom, 0px) + 16px);
+}
+
+/* Phone: tabs top bar ke neeche chipkein */
+.al-root .sn-tabs {
+  top: calc(var(--al-topbar-h) + 8px);
+}
+
+/* Fixed send bar sidebar ke upar na aaye */
+@media (min-width: 1024px) {
+  .al-root .sn-footer {
+    left: var(--al-sidebar-w);
+  }
+
+  .al-root .sn-tabs {
+    top: 8px;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .al-sidebar,
+  .al-sidebar.is-open,
+  .al-nav-item {
+    transition-duration: 0.01ms;
+  }
 }

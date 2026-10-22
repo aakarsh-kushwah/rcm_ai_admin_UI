@@ -1,98 +1,120 @@
-import React from 'react';
-import { Outlet, NavLink, useNavigate } from 'react-router-dom';
-import { 
-    LayoutDashboard, Users, Shield, Crown, 
-    Video, Youtube, Film, Mic, MessageSquare, Bell, LogOut, Instagram 
-} from 'lucide-react'; // Installing icons for pro look (npm install lucide-react)
+import React, { useEffect, useState } from 'react';
+import { Outlet, NavLink, useLocation, useNavigate } from 'react-router-dom';
+import { LogOut, Menu, X } from 'lucide-react';
+import { NAV_GROUPS } from './navItems';
 import './Layout.css';
 
+const ALL_ITEMS = NAV_GROUPS.flatMap((g) => g.items);
+
 function Layout() {
-    const navigate = useNavigate();
-    const handleLogout = () => {
-        localStorage.removeItem('token');
-        navigate('/login');
+  const navigate = useNavigate();
+  const location = useLocation();
+  const [menuOpen, setMenuOpen] = useState(false);
+
+  const handleLogout = () => {
+    localStorage.removeItem('token');
+    navigate('/login');
+  };
+
+  const current = ALL_ITEMS.find(
+    (i) => location.pathname === i.to || location.pathname.startsWith(`${i.to}/`)
+  );
+  const pageTitle = current ? current.label : 'Admin';
+
+  // Page badalne par mobile menu band
+  useEffect(() => {
+    setMenuOpen(false);
+  }, [location.pathname]);
+
+  // Menu khula ho: background scroll lock, Esc se band, desktop size par band
+  useEffect(() => {
+    if (!menuOpen) return undefined;
+
+    const prevOverflow = document.body.style.overflow;
+    document.body.style.overflow = 'hidden';
+
+    const onKey = (e) => {
+      if (e.key === 'Escape') setMenuOpen(false);
+    };
+    const mq = window.matchMedia('(min-width: 1024px)');
+    const onChange = (e) => {
+      if (e.matches) setMenuOpen(false);
     };
 
-    return (
-        <div className="admin-app-root">
-            {/* Top Navbar: Sticky on all devices */}
-            <header className="glass-header">
-                <div className="header-content">
-                    <div className="brand-identity">
-                        <div className="logo-glow"></div>
-                        <span className="brand-text">CORE ADMIN</span>
-                    </div>
-                    <button onClick={handleLogout} className="logout-minimal-btn">
-                        <LogOut size={16} /> Logout
-                    </button>
-                </div>
+    window.addEventListener('keydown', onKey);
+    mq.addEventListener('change', onChange);
 
-                {/* Mobile Scrollable Chips (Visible on Mobile Only) */}
-                <div className="mobile-tab-bar">
-                    <NavLink to="/dashboard" className="nav-chip">📊 Dash</NavLink>
-                    <NavLink to="/users" className="nav-chip">👥 Users</NavLink>
-                    <NavLink to="/admins" className="nav-chip">🛡️ Admins</NavLink>
-                    <NavLink to="/videos" className="nav-chip">🎬 Videos</NavLink>
-                    <NavLink to="/channels" className="nav-chip">📺 Channels</NavLink>
-                    <NavLink to="/shorts" className="nav-chip">📱 Shorts</NavLink>
-                    <NavLink to="/instagram" className="nav-chip">📸 Insta</NavLink>
-                    <NavLink to="/voice-training" className="nav-chip">🎙️ Voice</NavLink> {/* ADDED */}
-                    <NavLink to="/chats" className="nav-chip">💬 Chats</NavLink>
-                    <NavLink to="/sendnotifications" className="nav-chip">📢 Alerts</NavLink> {/* ADDED */}
-                </div>
-            </header>
+    return () => {
+      document.body.style.overflow = prevOverflow;
+      window.removeEventListener('keydown', onKey);
+      mq.removeEventListener('change', onChange);
+    };
+  }, [menuOpen]);
 
-            <div className="layout-container">
-                {/* Desktop Sidebar (Fixed/Sticky on Laptop) */}
-                <aside className="fixed-sidebar">
-                    <div className="sidebar-nav">
-                        <div className="nav-group-label">OVERVIEW</div>
-                        <NavLink to="/dashboard" className="side-nav-item">
-                            <LayoutDashboard size={18} /> Dashboard
-                        </NavLink>
+  return (
+    <div className="al-root">
+      {/* Mobile / tablet top bar */}
+      <header className="al-topbar">
+        <button
+          type="button"
+          className="al-icon-btn"
+          onClick={() => setMenuOpen(true)}
+          aria-label="Open menu"
+          aria-expanded={menuOpen}
+          aria-controls="al-sidebar"
+        >
+          <Menu size={22} />
+        </button>
+        <h1 className="al-topbar-title">{pageTitle}</h1>
+      </header>
 
-                        <div className="nav-group-label">MANAGEMENT</div>
-                        <NavLink to="/users" className="side-nav-item">
-                            <Users size={18} /> Users
-                        </NavLink>
-                        <NavLink to="/admins" className="side-nav-item">
-                            <Shield size={18} /> Admins
-                        </NavLink>
+      {menuOpen && <div className="al-backdrop" onClick={() => setMenuOpen(false)} aria-hidden="true" />}
 
-                        <div className="nav-group-label">CONTENT & AI</div>
-                        <NavLink to="/videos" className="side-nav-item">
-                            <Video size={18} /> Videos
-                        </NavLink>
-                        <NavLink to="/channels" className="side-nav-item">
-                            <Youtube size={18} /> Channels
-                        </NavLink>
-                        <NavLink to="/shorts" className="side-nav-item">
-                            <Film size={18} /> Shorts Management
-                        </NavLink>
-                        <NavLink to="/instagram" className="side-nav-item">
-                            <Instagram size={18} /> Instagram Reels
-                        </NavLink>
-                        <NavLink to="/voice-training" className="side-nav-item">
-                            <Mic size={18} /> Voice AI
-                        </NavLink> {/* ADDED */}
-                        <NavLink to="/chats" className="side-nav-item">
-                            <MessageSquare size={18} /> Chat Logs
-                        </NavLink>
-
-                        <div className="nav-group-label">SYSTEM</div>
-                        <NavLink to="/sendnotifications" className="side-nav-item">
-                            <Bell size={18} /> Push Alerts
-                        </NavLink> {/* ADDED */}
-                    </div>
-                </aside>
-
-                {/* Scrollable Main Area */}
-                <main className="main-viewport">
-                    <Outlet />
-                </main>
-            </div>
+      {/* Sidebar: desktop pe fixed, mobile pe slide-in menu */}
+      <aside id="al-sidebar" className={`al-sidebar ${menuOpen ? 'is-open' : ''}`}>
+        <div className="al-sidebar-head">
+          <span className="al-brand">Core Admin</span>
+          <button
+            type="button"
+            className="al-icon-btn al-close-btn"
+            onClick={() => setMenuOpen(false)}
+            aria-label="Close menu"
+          >
+            <X size={22} />
+          </button>
         </div>
-    );
+
+        <nav className="al-nav" aria-label="Main navigation">
+          {NAV_GROUPS.map((group) => (
+            <div className="al-group" key={group.label}>
+              <div className="al-group-label">{group.label}</div>
+              {group.items.map(({ to, label, icon: Icon }) => (
+                <NavLink
+                  key={to}
+                  to={to}
+                  className={({ isActive }) => `al-nav-item ${isActive ? 'is-active' : ''}`}
+                >
+                  <Icon size={20} />
+                  <span>{label}</span>
+                </NavLink>
+              ))}
+            </div>
+          ))}
+        </nav>
+
+        <div className="al-sidebar-foot">
+          <button type="button" className="al-logout" onClick={handleLogout}>
+            <LogOut size={20} />
+            <span>Log out</span>
+          </button>
+        </div>
+      </aside>
+
+      <main className="al-main">
+        <Outlet />
+      </main>
+    </div>
+  );
 }
 
 export default Layout;
