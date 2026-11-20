@@ -26,12 +26,13 @@ import {
   EyeOff,
   X,
   Check,
+  Activity,
 } from 'lucide-react';
 import './InstagramReelsManagement.css';
 
 const CATEGORIES = ['Motivation', 'Gentleman Grooming', 'Direct Selling'];
 const PAGE_SIZE = 12;
-const SINGLE_ID = 'none'; // reels that were added by URL and do not belong to an account
+const SINGLE_ID = 'none';
 const RESERVED_PATHS = ['reel', 'reels', 'p', 'tv', 'explore', 'stories', 'accounts'];
 
 const compact = new Intl.NumberFormat('en', { notation: 'compact', maximumFractionDigits: 1 });
@@ -49,10 +50,20 @@ const fmtDate = (d) => {
   });
 };
 
+const fmtTimeOnly = (d) => {
+  if (!d) return '';
+  const date = new Date(d);
+  if (Number.isNaN(date.getTime())) return '';
+  return date.toLocaleTimeString(undefined, {
+    hour: '2-digit',
+    minute: '2-digit',
+    second: '2-digit',
+  });
+};
+
 const isCanceled = (err) =>
   err?.code === 'ERR_CANCELED' || err?.name === 'CanceledError' || err?.name === 'AbortError';
 
-/** Understands @username, profile links and reel links. */
 function parseInput(raw) {
   const value = (raw || '').trim();
   if (!value) return { type: 'empty' };
@@ -99,7 +110,7 @@ function Thumb({ src, alt }) {
   return <img src={src} alt={alt} loading="lazy" decoding="async" onError={() => setFailed(true)} />;
 }
 
-/* ---------------- Account card (tap to open its reels) ---------------- */
+/* ---------------- Account card ---------------- */
 
 const AccountCard = memo(function AccountCard({
   acc,
@@ -111,8 +122,11 @@ const AccountCard = memo(function AccountCard({
   onDelete,
 }) {
   const active = acc.isActive !== false;
+  const status = String(acc.lastSyncStatus || acc.syncStatus || '').toUpperCase();
+  const isZeroReels = (acc.reelsCount || 0) === 0;
+
   return (
-    <article className={`igm-account ${active ? '' : 'is-off'}`}>
+    <article className={`igm-account ${active ? '' : 'is-off'} ${syncing ? 'is-syncing' : ''}`}>
       <button
         type="button"
         className="igm-account-open"
@@ -127,6 +141,13 @@ const AccountCard = memo(function AccountCard({
             <strong>{acc.name || acc.username}</strong>
             <span>@{acc.username}</span>
           </div>
+          {syncing ? (
+            <span className="igm-badge igm-badge-sync">Syncing</span>
+          ) : status === 'FAILED' ? (
+            <span className="igm-badge igm-badge-err">Failed</span>
+          ) : isZeroReels ? (
+            <span className="igm-badge igm-badge-warn">0 reels</span>
+          ) : null}
           <ChevronRight size={18} className="igm-go" />
         </div>
         <div className="igm-account-meta">
@@ -134,6 +155,9 @@ const AccountCard = memo(function AccountCard({
           <span>
             <b>{acc.reelsCount || 0}</b> reels
           </span>
+          {Number(acc.lastNewCount) > 0 && (
+            <span className="igm-new-pill">+{acc.lastNewCount} new</span>
+          )}
           <span className="igm-muted-sm">Synced {fmtDate(acc.lastSyncedAt)}</span>
         </div>
       </button>
@@ -143,12 +167,12 @@ const AccountCard = memo(function AccountCard({
         <div className="igm-row-gap">
           <button
             type="button"
-            className="igm-btn igm-btn-ghost igm-btn-sm"
+            className={`igm-btn igm-btn-sm ${isZeroReels && !syncing ? 'igm-btn-primary' : 'igm-btn-ghost'}`}
             onClick={() => onSync(acc.id)}
             disabled={syncDisabled}
           >
             <RefreshCw size={14} className={syncing ? 'igm-spin' : ''} />
-            {syncing ? 'Syncing…' : 'Sync'}
+            {syncing ? 'Syncing…' : isZeroReels ? 'Fetch reels' : 'Sync'}
           </button>
           <button
             type="button"
@@ -276,6 +300,7 @@ function ReelsDrawer({
   isSingle,
   syncing,
   syncDisabled,
+  reloadSignal,
   onClose,
   onSync,
   onToggleAccount,
@@ -310,7 +335,7 @@ function ReelsDrawer({
       if (res.data.success) {
         const list = res.data.data || [];
         if (list.length === 0 && page > 1) {
-          setPage(page - 1); // last page became empty after deletes
+          setPage(page - 1);
           return;
         }
         setReels(list);
@@ -335,9 +360,8 @@ function ReelsDrawer({
 
   useEffect(() => {
     load();
-  }, [load]);
+  }, [load, reloadSignal]);
 
-  // Esc closes, page behind stops scrolling, request is cancelled on close
   useEffect(() => {
     const onKey = (e) => e.key === 'Escape' && onClose();
     document.addEventListener('keydown', onKey);
@@ -377,9 +401,7 @@ function ReelsDrawer({
           setTotal((t) => (t == null ? t : Math.max(0, t - 1)));
           if (reels.length <= 1) {
             if (page > 1) setPage((p) => p - 1);
-            else {
-              setReels([]);
-            }
+            else setReels([]);
           } else {
             setReels((list) => list.filter((r) => r.id !== id));
           }
@@ -411,7 +433,6 @@ function ReelsDrawer({
     setSelected(new Set());
   };
 
-  // One delete at a time, so a big selection never hits the server all at once.
   const handleBulkDelete = async () => {
     const ids = [...selected];
     if (!ids.length) return;
@@ -423,7 +444,7 @@ function ReelsDrawer({
         const res = await apiClient.delete(`/api/admin/instagram/reels/${id}`);
         if (res.data.success) done += 1;
       } catch (err) {
-        /* keep going, report at the end */
+        /* keep going */
       }
     }
     setBusy(false);
@@ -556,7 +577,9 @@ function ReelsDrawer({
             <div className="igm-empty">
               {isSingle
                 ? 'No single reels yet. Paste a reel link above to add one.'
-                : 'No reels for this account yet. Press Sync now to fetch them.'}
+                : syncing
+                ? 'Scraping reels in background… list will refresh automatically.'
+                : 'No reels for this account yet. Press Fetch reels to scrape them.'}
             </div>
           ) : (
             <div className={`igm-reels ${loading ? 'is-loading' : ''}`}>
@@ -606,22 +629,40 @@ function ReelsDrawer({
 /* ---------------- Main page ---------------- */
 
 export default function InstagramReelsManagement() {
-  // Add form
   const [inputUrl, setInputUrl] = useState('');
   const [selectedCategory, setSelectedCategory] = useState(CATEGORIES[0]);
   const [submitting, setSubmitting] = useState(false);
   const submittingRef = useRef(false);
 
-  // Accounts
   const [accounts, setAccounts] = useState([]);
   const [loadingAccounts, setLoadingAccounts] = useState(true);
   const [syncingAccountId, setSyncingAccountId] = useState(null);
   const [accountQuery, setAccountQuery] = useState('');
-  const [openId, setOpenId] = useState(null); // account id, SINGLE_ID, or null
+  const [openId, setOpenId] = useState(null);
+  const [drawerReloadSignal, setDrawerReloadSignal] = useState(0);
 
-  // Toast
+  // Live sync activity feed (clean structured items, no raw terminal dump)
+  const [syncActivity, setSyncActivity] = useState({
+    activeUsername: null,
+    status: 'idle',
+    logs: [],
+  });
+
   const [toast, setToast] = useState({ message: '', type: 'success' });
   const toastTimer = useRef(null);
+
+  const pushActivity = useCallback((text, tone = 'info') => {
+    const entry = {
+      id: `${Date.now()}-${Math.random().toString(36).slice(2, 6)}`,
+      time: fmtTimeOnly(new Date()),
+      text,
+      tone,
+    };
+    setSyncActivity((prev) => ({
+      ...prev,
+      logs: [entry, ...prev.logs].slice(0, 8),
+    }));
+  }, []);
 
   const showToast = useCallback((message, type = 'success') => {
     clearTimeout(toastTimer.current);
@@ -631,16 +672,32 @@ export default function InstagramReelsManagement() {
 
   useEffect(() => () => clearTimeout(toastTimer.current), []);
 
-  const fetchAccounts = useCallback(async () => {
+  const fetchAccounts = useCallback(async ({ silent = false } = {}) => {
     try {
-      setLoadingAccounts(true);
+      if (!silent) setLoadingAccounts(true);
       const res = await apiClient.get('/api/admin/instagram/accounts');
-      if (res.data.success) setAccounts(res.data.data || []);
+      if (res.data.success) {
+        const list = res.data.data || [];
+        setAccounts(list);
+        const serverSyncing = list.find(
+          (a) => String(a.lastSyncStatus || a.syncStatus || '').toUpperCase() === 'SYNCING'
+        );
+        if (serverSyncing) {
+          setSyncingAccountId((cur) => cur ?? serverSyncing.id);
+          setSyncActivity((prev) => ({
+            ...prev,
+            activeUsername: serverSyncing.username,
+            status: 'syncing',
+          }));
+        }
+      }
     } catch (err) {
-      console.error('Failed to fetch Instagram accounts:', err);
-      showToast('Could not load accounts. Try Refresh.', 'error');
+      if (!silent) {
+        console.error('Failed to fetch Instagram accounts:', err);
+        showToast('Could not load accounts. Try Refresh.', 'error');
+      }
     } finally {
-      setLoadingAccounts(false);
+      if (!silent) setLoadingAccounts(false);
     }
   }, [showToast]);
 
@@ -648,7 +705,14 @@ export default function InstagramReelsManagement() {
     fetchAccounts();
   }, [fetchAccounts]);
 
-  /* ----- Duplicate check while typing ----- */
+  // Poll while a sync is running so 0-reel accounts show updated counts automatically
+  useEffect(() => {
+    if (syncingAccountId == null) return undefined;
+    const timer = setInterval(() => {
+      fetchAccounts({ silent: true });
+    }, 2500);
+    return () => clearInterval(timer);
+  }, [syncingAccountId, fetchAccounts]);
 
   const parsed = useMemo(() => parseInput(inputUrl), [inputUrl]);
 
@@ -665,8 +729,6 @@ export default function InstagramReelsManagement() {
   }, [parsed, accounts]);
 
   const canSubmit = parsed.type === 'account' || parsed.type === 'reel';
-
-  /* ----- Actions ----- */
 
   const handleImport = async (e) => {
     e.preventDefault();
@@ -688,9 +750,11 @@ export default function InstagramReelsManagement() {
         category: selectedCategory,
       });
       if (res.data.success) {
-        showToast(res.data.message || 'Added successfully.');
+        const addedHandle = parsed.type === 'account' ? `@${parsed.label}` : `Reel ${parsed.label}`;
+        showToast(res.data.message || `${addedHandle} added.`);
+        pushActivity(`${addedHandle} added to queue (${selectedCategory}).`, 'ok');
         setInputUrl('');
-        fetchAccounts();
+        await fetchAccounts({ silent: true });
       }
     } catch (err) {
       showToast(err.response?.data?.message || 'Could not add this. Try again.', 'error');
@@ -702,20 +766,58 @@ export default function InstagramReelsManagement() {
 
   const handleSyncAccount = useCallback(
     async (id) => {
+      const target = accounts.find((a) => a.id === id);
+      const handleLabel = target ? `@${target.username}` : `Account #${id}`;
+      const isFresh = (target?.reelsCount || 0) === 0;
+
+      setSyncingAccountId(id);
+      setSyncActivity((prev) => ({
+        ...prev,
+        activeUsername: target?.username || String(id),
+        status: 'syncing',
+      }));
+      pushActivity(
+        `${handleLabel}: ${isFresh ? 'Full scrape' : 'Incremental check'} started…`,
+        'sync'
+      );
+
       try {
-        setSyncingAccountId(id);
         const res = await apiClient.post(`/api/admin/instagram/accounts/${id}/sync`);
         if (res.data.success) {
-          showToast('Account synced. Press Refresh in the reels list to see new reels.');
-          fetchAccounts();
+          const data = res.data.data || res.data;
+          const totalInDb = data.reelsCount ?? data.totalReels;
+          const addedCount = data.newCount ?? data.createdCount ?? 0;
+
+          showToast(
+            totalInDb != null
+              ? `${handleLabel} synced — ${totalInDb} reels in DB${addedCount ? ` (+${addedCount} new)` : ''}.`
+              : `${handleLabel} sync completed.`
+          );
+          pushActivity(
+            `${handleLabel} complete${totalInDb != null ? ` · ${totalInDb} total reels` : ''}${
+              addedCount ? ` (+${addedCount} new)` : ''
+            }`,
+            'ok'
+          );
+          await fetchAccounts({ silent: true });
+          setDrawerReloadSignal((n) => n + 1);
+        } else {
+          throw new Error(res.data.message || 'Sync failed');
         }
       } catch (err) {
-        showToast(err.response?.data?.message || 'Sync failed.', 'error');
+        const msg = err.response?.data?.message || err.message || 'Sync failed.';
+        showToast(msg, 'error');
+        pushActivity(`${handleLabel} failed: ${msg}`, 'err');
       } finally {
         setSyncingAccountId(null);
+        setSyncActivity((prev) => ({
+          ...prev,
+          activeUsername: null,
+          status: 'idle',
+        }));
       }
     },
-    [fetchAccounts, showToast]
+    [accounts, fetchAccounts, pushActivity, showToast]
   );
 
   const handleToggleAccount = useCallback(
@@ -753,7 +855,6 @@ export default function InstagramReelsManagement() {
 
   const closeDrawer = useCallback(() => setOpenId(null), []);
 
-  // keeps the "N reels" number on the card correct after deletes, without refetching
   const handleReelsRemoved = useCallback(
     (count) => {
       if (!openId || openId === SINGLE_ID) return;
@@ -765,8 +866,6 @@ export default function InstagramReelsManagement() {
     },
     [openId]
   );
-
-  /* ----- Derived ----- */
 
   const filteredAccounts = useMemo(() => {
     const q = accountQuery.trim().toLowerCase();
@@ -785,6 +884,10 @@ export default function InstagramReelsManagement() {
   );
   const totalReels = useMemo(
     () => accounts.reduce((sum, a) => sum + (a.reelsCount || 0), 0),
+    [accounts]
+  );
+  const zeroReelAccounts = useMemo(
+    () => accounts.filter((a) => (a.reelsCount || 0) === 0).length,
     [accounts]
   );
 
@@ -810,7 +913,7 @@ export default function InstagramReelsManagement() {
         </span>
         <div>
           <h2>Instagram Reels</h2>
-          <p>Add accounts, then tap an account to manage its reels.</p>
+          <p>Add accounts, fetch reels for 0-reel accounts, and monitor sync progress.</p>
         </div>
       </header>
 
@@ -821,13 +924,48 @@ export default function InstagramReelsManagement() {
         </div>
         <div>
           <strong>{activeAccounts}</strong>
-          <span>Active</span>
+          <span>Active ({zeroReelAccounts} with 0 reels)</span>
         </div>
         <div>
           <strong>{totalReels}</strong>
           <span>Reels from accounts</span>
         </div>
       </section>
+
+      {/* Clean Sync Activity Card (only shown when active or has recent events) */}
+      {(syncActivity.status === 'syncing' || syncActivity.logs.length > 0) && (
+        <section className="igm-card igm-monitor" aria-label="Sync activity">
+          <div className="igm-monitor-head">
+            <div className="igm-row-gap">
+              <Activity size={18} className={syncActivity.status === 'syncing' ? 'igm-spin' : ''} />
+              <h3>Sync Activity</h3>
+              {syncActivity.status === 'syncing' && syncActivity.activeUsername && (
+                <span className="igm-badge igm-badge-sync">
+                  Scraping @{syncActivity.activeUsername}
+                </span>
+              )}
+            </div>
+            {syncActivity.status !== 'syncing' && syncActivity.logs.length > 0 && (
+              <button
+                type="button"
+                className="igm-link-btn"
+                onClick={() => setSyncActivity({ activeUsername: null, status: 'idle', logs: [] })}
+              >
+                Clear
+              </button>
+            )}
+          </div>
+
+          <ul className="igm-activity-list">
+            {syncActivity.logs.map((item) => (
+              <li key={item.id} className={`igm-activity-item is-${item.tone}`}>
+                <span className="igm-activity-time">{item.time}</span>
+                <span className="igm-activity-text">{item.text}</span>
+              </li>
+            ))}
+          </ul>
+        </section>
+      )}
 
       {/* Add */}
       <section className="igm-card">
@@ -917,7 +1055,7 @@ export default function InstagramReelsManagement() {
             <button
               type="button"
               className="igm-btn igm-btn-ghost igm-btn-sm"
-              onClick={fetchAccounts}
+              onClick={() => fetchAccounts()}
               disabled={loadingAccounts}
             >
               <RefreshCw size={14} className={loadingAccounts ? 'igm-spin' : ''} /> Refresh
@@ -926,7 +1064,6 @@ export default function InstagramReelsManagement() {
         </div>
 
         <div className="igm-accounts">
-          {/* Reels that were added by link */}
           <button type="button" className="igm-account igm-single" onClick={() => setOpenId(SINGLE_ID)}>
             <span className="igm-logo igm-logo-sm">
               <Film size={20} />
@@ -968,6 +1105,7 @@ export default function InstagramReelsManagement() {
           isSingle={openId === SINGLE_ID}
           syncing={syncingAccountId === openId}
           syncDisabled={syncingAccountId !== null}
+          reloadSignal={drawerReloadSignal}
           onClose={closeDrawer}
           onSync={handleSyncAccount}
           onToggleAccount={handleToggleAccount}

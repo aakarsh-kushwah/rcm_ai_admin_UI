@@ -324,3 +324,97 @@ body {
     transition-duration: 0.01ms;
   }
 }
+
+/* ---------- Sync status badges & activity monitor ---------- */
+
+.igm-account.is-syncing {
+  border-color: var(--igm-accent);
+  box-shadow: 0 0 0 2px var(--igm-accent-soft);
+}
+
+.igm-badge {
+  flex: none;
+  padding: 2px 8px;
+  border-radius: 999px;
+  font-size: 0.7rem;
+  font-weight: 700;
+  letter-spacing: 0.02em;
+}
+
+.igm-badge-sync {
+  background: var(--igm-accent-soft);
+  color: #ff7aa6;
+}
+
+.igm-badge-warn {
+  background: rgba(255, 184, 77, 0.14);
+  color: #ffb84d;
+}
+
+.igm-badge-err {
+  background: rgba(255, 90, 95, 0.15);
+  color: var(--igm-danger);
+}
+
+.igm-new-pill {
+  padding: 2px 7px;
+  border-radius: 999px;
+  font-size: 0.72rem;
+  font-weight: 700;
+  background: rgba(47, 214, 139, 0.14);
+  color: var(--igm-ok);
+}
+
+.igm-monitor-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  margin-bottom: 10px;
+}
+
+.igm-activity-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.igm-activity-item {
+  display: flex;
+  align-items: baseline;
+  gap: 10px;
+  font-size: 0.83rem;
+  line-height: 1.4;
+  padding: 6px 10px;
+  border-radius: 8px;
+  background: var(--igm-bg);
+  border-left: 3px solid var(--igm-line);
+}
+
+.igm-activity-item.is-sync {
+  border-left-color: var(--igm-accent);
+}
+
+.igm-activity-item.is-ok {
+  border-left-color: var(--igm-ok);
+}
+
+.igm-activity-item.is-err {
+  border-left-color: var(--igm-danger);
+  color: var(--igm-danger);
+}
+
+.igm-activity-time {
+  flex: none;
+  color: var(--igm-muted);
+  font-size: 0.75rem;
+  font-variant-numeric: tabular-nums;
+}
+
+.igm-activity-text {
+  min-width: 0;
+  word-break: break-word;
+}
