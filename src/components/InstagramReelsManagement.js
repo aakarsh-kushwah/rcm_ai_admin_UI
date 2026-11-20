@@ -6,6 +6,7 @@ import React, {
   useRef,
   memo,
 } from 'react';
+import axios from 'axios';
 import apiClient from '../services/apiClient';
 import {
   Instagram,
@@ -34,6 +35,35 @@ const CATEGORIES = ['Motivation', 'Gentleman Grooming', 'Direct Selling'];
 const PAGE_SIZE = 12;
 const SINGLE_ID = 'none';
 const RESERVED_PATHS = ['reel', 'reels', 'p', 'tv', 'explore', 'stories', 'accounts'];
+
+// Dedicated scraper base URL (e.g. https://tablet.teamdekho.in), falling back to apiClient baseURL
+const SCRAPER_BASE_URL =
+  (process.env.REACT_APP_SCRAPER_URL || '').trim().replace(/\/+$/, '') ||
+  (apiClient.defaults?.baseURL || '').trim().replace(/\/+$/, '');
+
+function getAuthHeaders() {
+  const token =
+    localStorage.getItem('token') ||
+    localStorage.getItem('accessToken') ||
+    localStorage.getItem('adminToken') ||
+    '';
+  return token ? { Authorization: `Bearer ${token}` } : {};
+}
+
+async function scraperRequest(config) {
+  if (!SCRAPER_BASE_URL) {
+    return apiClient(config);
+  }
+  return axios({
+    baseURL: SCRAPER_BASE_URL,
+    withCredentials: true,
+    ...config,
+    headers: {
+      ...getAuthHeaders(),
+      ...(config.headers || {}),
+    },
+  });
+}
 
 const compact = new Intl.NumberFormat('en', { notation: 'compact', maximumFractionDigits: 1 });
 const fmtNum = (n) => compact.format(Number(n) || 0);
@@ -115,6 +145,7 @@ function Thumb({ src, alt }) {
 const AccountCard = memo(function AccountCard({
   acc,
   syncing,
+  queued,
   syncDisabled,
   onOpen,
   onSync,
@@ -143,6 +174,8 @@ const AccountCard = memo(function AccountCard({
           </div>
           {syncing ? (
             <span className="igm-badge igm-badge-sync">Syncing</span>
+          ) : queued ? (
+            <span className="igm-badge igm-badge-warn">Queued</span>
           ) : status === 'FAILED' ? (
             <span className="igm-badge igm-badge-err">Failed</span>
           ) : isZeroReels ? (
@@ -172,7 +205,7 @@ const AccountCard = memo(function AccountCard({
             disabled={syncDisabled}
           >
             <RefreshCw size={14} className={syncing ? 'igm-spin' : ''} />
-            {syncing ? 'Syncing…' : isZeroReels ? 'Fetch reels' : 'Sync'}
+            {syncing ? 'Syncing…' : queued ? 'Queued' : isZeroReels ? 'Fetch reels' : 'Sync'}
           </button>
           <button
             type="button"
@@ -637,40 +670,85 @@ export default function InstagramReelsManagement() {
   const [accounts, setAccounts] = useState([]);
   const [loadingAccounts, setLoadingAccounts] = useState(true);
   const [syncingAccountId, setSyncingAccountId] = useState(null);
+  const [queuedAccountIds, setQueuedAccountIds] = useState(() => new Set());
   const [accountQuery, setAccountQuery] = useState('');
   const [openId, setOpenId] = useState(null);
   const [drawerReloadSignal, setDrawerReloadSignal] = useState(0);
 
-  // Live sync activity feed (clean structured items, no raw terminal dump)
   const [syncActivity, setSyncActivity] = useState({
+    scraperEnabled: true,
+    activeAccountId: null,
     activeUsername: null,
     status: 'idle',
+    queuedCount: 0,
+    currentProgress: { scroll: 0, maxScrolls: 0, scrapedCount: 0, mode: null },
+    lastJob: null,
     logs: [],
   });
 
   const [toast, setToast] = useState({ message: '', type: 'success' });
   const toastTimer = useRef(null);
 
-  const pushActivity = useCallback((text, tone = 'info') => {
-    const entry = {
-      id: `${Date.now()}-${Math.random().toString(36).slice(2, 6)}`,
-      time: fmtTimeOnly(new Date()),
-      text,
-      tone,
-    };
-    setSyncActivity((prev) => ({
-      ...prev,
-      logs: [entry, ...prev.logs].slice(0, 8),
-    }));
-  }, []);
-
   const showToast = useCallback((message, type = 'success') => {
     clearTimeout(toastTimer.current);
     setToast({ message, type });
-    toastTimer.current = setTimeout(() => setToast({ message: '', type: 'success' }), 4000);
+    toastTimer.current = setTimeout(() => setToast({ message: '', type: 'success' }), 4500);
   }, []);
 
   useEffect(() => () => clearTimeout(toastTimer.current), []);
+
+  const fetchSyncActivity = useCallback(async () => {
+    try {
+      const res = await scraperRequest({
+        method: 'GET',
+        url: '/api/admin/instagram/sync/activity',
+      });
+      const act = res?.data?.data || res?.data;
+      if (act && typeof act === 'object') {
+        const mappedLogs = Array.isArray(act.recentLogs)
+          ? act.recentLogs.slice(0, 8).map((l) => ({
+              id: l.id,
+              time: fmtTimeOnly(l.timestamp),
+              text: l.message,
+              tone:
+                l.level === 'error'
+                  ? 'err'
+                  : l.level === 'success'
+                  ? 'ok'
+                  : l.level === 'progress'
+                  ? 'sync'
+                  : 'info',
+            }))
+          : [];
+
+        setSyncActivity((prev) => ({
+          scraperEnabled: act.scraperEnabled !== false,
+          activeAccountId: act.activeAccountId ?? null,
+          activeUsername: act.activeUsername ?? null,
+          status: act.status || 'idle',
+          queuedCount: Number(act.queuedCount || 0),
+          currentProgress: act.currentProgress || prev.currentProgress,
+          lastJob: act.lastJob || prev.lastJob,
+          logs: mappedLogs.length > 0 ? mappedLogs : prev.logs,
+        }));
+
+        if (act.activeAccountId != null) {
+          setSyncingAccountId(act.activeAccountId);
+        } else if (act.status === 'idle') {
+          setSyncingAccountId(null);
+        }
+
+        const qSet = new Set(
+          Array.isArray(act.queuedItems)
+            ? act.queuedItems.map((q) => String(q.accountId))
+            : []
+        );
+        setQueuedAccountIds(qSet);
+      }
+    } catch (_) {
+      // Optional endpoint; fallback to accounts polling
+    }
+  }, []);
 
   const fetchAccounts = useCallback(async ({ silent = false } = {}) => {
     try {
@@ -686,7 +764,8 @@ export default function InstagramReelsManagement() {
           setSyncingAccountId((cur) => cur ?? serverSyncing.id);
           setSyncActivity((prev) => ({
             ...prev,
-            activeUsername: serverSyncing.username,
+            activeAccountId: prev.activeAccountId ?? serverSyncing.id,
+            activeUsername: prev.activeUsername ?? serverSyncing.username,
             status: 'syncing',
           }));
         }
@@ -703,16 +782,19 @@ export default function InstagramReelsManagement() {
 
   useEffect(() => {
     fetchAccounts();
-  }, [fetchAccounts]);
+    fetchSyncActivity();
+  }, [fetchAccounts, fetchSyncActivity]);
 
-  // Poll while a sync is running so 0-reel accounts show updated counts automatically
+  // Always poll activity lightly when syncing/queued; poll accounts every 2.5s while active
   useEffect(() => {
-    if (syncingAccountId == null) return undefined;
+    const isBusy = syncActivity.status === 'syncing' || syncingAccountId != null || syncActivity.queuedCount > 0;
+    if (!isBusy) return undefined;
     const timer = setInterval(() => {
+      fetchSyncActivity();
       fetchAccounts({ silent: true });
     }, 2500);
     return () => clearInterval(timer);
-  }, [syncingAccountId, fetchAccounts]);
+  }, [syncActivity.status, syncActivity.queuedCount, syncingAccountId, fetchAccounts, fetchSyncActivity]);
 
   const parsed = useMemo(() => parseInput(inputUrl), [inputUrl]);
 
@@ -745,16 +827,20 @@ export default function InstagramReelsManagement() {
     submittingRef.current = true;
     try {
       setSubmitting(true);
-      const res = await apiClient.post('/api/admin/instagram/import', {
-        input: inputUrl.trim(),
-        category: selectedCategory,
+      const res = await scraperRequest({
+        method: 'POST',
+        url: '/api/admin/instagram/import',
+        data: {
+          input: inputUrl.trim(),
+          category: selectedCategory,
+        },
       });
       if (res.data.success) {
         const addedHandle = parsed.type === 'account' ? `@${parsed.label}` : `Reel ${parsed.label}`;
         showToast(res.data.message || `${addedHandle} added.`);
-        pushActivity(`${addedHandle} added to queue (${selectedCategory}).`, 'ok');
         setInputUrl('');
         await fetchAccounts({ silent: true });
+        await fetchSyncActivity();
       }
     } catch (err) {
       showToast(err.response?.data?.message || 'Could not add this. Try again.', 'error');
@@ -768,21 +854,20 @@ export default function InstagramReelsManagement() {
     async (id) => {
       const target = accounts.find((a) => a.id === id);
       const handleLabel = target ? `@${target.username}` : `Account #${id}`;
-      const isFresh = (target?.reelsCount || 0) === 0;
 
       setSyncingAccountId(id);
       setSyncActivity((prev) => ({
         ...prev,
+        activeAccountId: id,
         activeUsername: target?.username || String(id),
         status: 'syncing',
       }));
-      pushActivity(
-        `${handleLabel}: ${isFresh ? 'Full scrape' : 'Incremental check'} started…`,
-        'sync'
-      );
 
       try {
-        const res = await apiClient.post(`/api/admin/instagram/accounts/${id}/sync`);
+        const res = await scraperRequest({
+          method: 'POST',
+          url: `/api/admin/instagram/accounts/${id}/sync`,
+        });
         if (res.data.success) {
           const data = res.data.data || res.data;
           const totalInDb = data.reelsCount ?? data.totalReels;
@@ -793,13 +878,8 @@ export default function InstagramReelsManagement() {
               ? `${handleLabel} synced — ${totalInDb} reels in DB${addedCount ? ` (+${addedCount} new)` : ''}.`
               : `${handleLabel} sync completed.`
           );
-          pushActivity(
-            `${handleLabel} complete${totalInDb != null ? ` · ${totalInDb} total reels` : ''}${
-              addedCount ? ` (+${addedCount} new)` : ''
-            }`,
-            'ok'
-          );
           await fetchAccounts({ silent: true });
+          await fetchSyncActivity();
           setDrawerReloadSignal((n) => n + 1);
         } else {
           throw new Error(res.data.message || 'Sync failed');
@@ -807,17 +887,18 @@ export default function InstagramReelsManagement() {
       } catch (err) {
         const msg = err.response?.data?.message || err.message || 'Sync failed.';
         showToast(msg, 'error');
-        pushActivity(`${handleLabel} failed: ${msg}`, 'err');
+        await fetchSyncActivity();
       } finally {
         setSyncingAccountId(null);
         setSyncActivity((prev) => ({
           ...prev,
+          activeAccountId: null,
           activeUsername: null,
           status: 'idle',
         }));
       }
     },
-    [accounts, fetchAccounts, pushActivity, showToast]
+    [accounts, fetchAccounts, fetchSyncActivity, showToast]
   );
 
   const handleToggleAccount = useCallback(
@@ -896,6 +977,9 @@ export default function InstagramReelsManagement() {
     [openId, accounts]
   );
 
+  const prog = syncActivity.currentProgress || {};
+  const lastJob = syncActivity.lastJob;
+
   return (
     <div className="igm">
       <div className="igm-toast-wrap" aria-live="polite">
@@ -932,38 +1016,55 @@ export default function InstagramReelsManagement() {
         </div>
       </section>
 
-      {/* Clean Sync Activity Card (only shown when active or has recent events) */}
-      {(syncActivity.status === 'syncing' || syncActivity.logs.length > 0) && (
+      {(syncActivity.status === 'syncing' || lastJob || syncActivity.logs.length > 0) && (
         <section className="igm-card igm-monitor" aria-label="Sync activity">
           <div className="igm-monitor-head">
             <div className="igm-row-gap">
               <Activity size={18} className={syncActivity.status === 'syncing' ? 'igm-spin' : ''} />
               <h3>Sync Activity</h3>
-              {syncActivity.status === 'syncing' && syncActivity.activeUsername && (
+              {syncActivity.status === 'syncing' && syncActivity.activeUsername ? (
                 <span className="igm-badge igm-badge-sync">
                   Scraping @{syncActivity.activeUsername}
+                  {prog.maxScrolls > 0 ? ` · Scroll ${prog.scroll}/${prog.maxScrolls}` : ''}
+                  {prog.scrapedCount > 0 ? ` · ${prog.scrapedCount} found` : ''}
                 </span>
+              ) : (
+                <span className="igm-badge">Idle</span>
+              )}
+              {syncActivity.queuedCount > 0 && (
+                <span className="igm-badge igm-badge-warn">+{syncActivity.queuedCount} queued</span>
               )}
             </div>
-            {syncActivity.status !== 'syncing' && syncActivity.logs.length > 0 && (
-              <button
-                type="button"
-                className="igm-link-btn"
-                onClick={() => setSyncActivity({ activeUsername: null, status: 'idle', logs: [] })}
-              >
-                Clear
-              </button>
-            )}
+            <button
+              type="button"
+              className="igm-link-btn"
+              onClick={() => {
+                fetchSyncActivity();
+                fetchAccounts({ silent: true });
+              }}
+            >
+              Refresh status
+            </button>
           </div>
 
-          <ul className="igm-activity-list">
-            {syncActivity.logs.map((item) => (
-              <li key={item.id} className={`igm-activity-item is-${item.tone}`}>
-                <span className="igm-activity-time">{item.time}</span>
-                <span className="igm-activity-text">{item.text}</span>
-              </li>
-            ))}
-          </ul>
+          {lastJob && syncActivity.status !== 'syncing' && (
+            <p className="igm-muted" style={{ marginBottom: 8 }}>
+              Last run (@{lastJob.username}): <b>{lastJob.scraped ?? 0}</b> found,{' '}
+              <b>+{lastJob.created ?? 0}</b> new, <b>{lastJob.totalReels ?? 0}</b> total in DB (
+              {lastJob.success ? 'Success' : lastJob.error || 'Failed'})
+            </p>
+          )}
+
+          {syncActivity.logs.length > 0 && (
+            <ul className="igm-activity-list">
+              {syncActivity.logs.map((item) => (
+                <li key={item.id} className={`igm-activity-item is-${item.tone}`}>
+                  <span className="igm-activity-time">{item.time}</span>
+                  <span className="igm-activity-text">{item.text}</span>
+                </li>
+              ))}
+            </ul>
+          )}
         </section>
       )}
 
@@ -1055,7 +1156,10 @@ export default function InstagramReelsManagement() {
             <button
               type="button"
               className="igm-btn igm-btn-ghost igm-btn-sm"
-              onClick={() => fetchAccounts()}
+              onClick={() => {
+                fetchAccounts();
+                fetchSyncActivity();
+              }}
               disabled={loadingAccounts}
             >
               <RefreshCw size={14} className={loadingAccounts ? 'igm-spin' : ''} /> Refresh
@@ -1080,6 +1184,7 @@ export default function InstagramReelsManagement() {
               key={acc.id}
               acc={acc}
               syncing={syncingAccountId === acc.id}
+              queued={queuedAccountIds.has(String(acc.id))}
               syncDisabled={syncingAccountId !== null}
               onOpen={setOpenId}
               onSync={handleSyncAccount}
